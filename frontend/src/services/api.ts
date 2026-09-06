@@ -35,7 +35,7 @@ export const DEFAULT_PORTFOLIO_DATA: PortfolioOverview = {
     whatsapp: '+91 9801573326',
     linkedinUrl: 'https://www.linkedin.com/in/kanhaiya-pandey-3856743a7/',
     githubUrl: 'https://github.com/kanhaiya28pandey/',
-    coffeeUrl: 'https://buymeacoffee.com',
+    coffeeUrl: 'pandey123@okhdfcbank',
   },
   skills: [
     // --- CORE & BACKEND TECHNOLOGIES ---
@@ -652,7 +652,7 @@ export const DEFAULT_PORTFOLIO_DATA: PortfolioOverview = {
   settings: {
     site_title: 'Kanhaiya | techwithkanhaiya',
     meta_description: 'Official portfolio of Kanhaiya Pandey - Full-Stack Developer & Software Engineer.',
-    support_coffee_url: 'https://buymeacoffee.com',
+    support_coffee_url: 'pandey123@okhdfcbank',
     availability_badge: 'Available for Full-Stack & AI Roles',
     dsa_solved_count: '150+',
     github_url: 'https://github.com/kanhaiya28pandey/',

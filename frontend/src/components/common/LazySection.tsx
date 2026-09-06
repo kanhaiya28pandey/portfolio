@@ -46,7 +46,7 @@ export const LazySection: React.FC<LazySectionProps> = ({
       },
       {
         root: null,
-        rootMargin: '300px 0px 300px 0px', // Preload smoothly 300px before reaching viewport
+        rootMargin: '800px 0px 800px 0px', // Preload smoothly 800px before reaching viewport
         threshold: 0.01,
       }
     );
@@ -69,9 +69,9 @@ export const LazySection: React.FC<LazySectionProps> = ({
     >
       {isVisible ? (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: 'easeOut' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
         >
           <Suspense fallback={<SectionSkeletonPlaceholder title={fallbackTitle} />}>
             {children}

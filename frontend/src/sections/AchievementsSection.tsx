@@ -23,8 +23,14 @@ export const AchievementsSection: React.FC<AchievementsSectionProps> = ({ achiev
   return (
     <section id="achievements" className="relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text">
       {/* Seamless Ambient Backlight Spheres */}
-      <div className="absolute top-1/4 -left-48 w-[450px] h-[450px] bg-amber-500/10 dark:bg-amber-500/10 light:bg-amber-300/20 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-48 w-[450px] h-[450px] bg-orange-600/10 dark:bg-orange-600/10 light:bg-orange-300/20 rounded-full blur-[140px] pointer-events-none" />
+      <div
+        className="absolute top-1/4 -left-48 w-[450px] h-[450px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(245, 158, 11, 0.10) 0%, transparent 70%)' }}
+      />
+      <div
+        className="absolute bottom-1/4 -right-48 w-[450px] h-[450px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(234, 88, 12, 0.10) 0%, transparent 70%)' }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}

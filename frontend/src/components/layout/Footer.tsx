@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowUp, Coffee, ArrowRight, Mail } from 'lucide-react';
+import { ArrowUp, Heart, ArrowRight, Mail } from 'lucide-react';
 import {
   GithubIcon,
   LinkedinIcon,
@@ -263,17 +263,17 @@ export const Footer: React.FC<FooterProps> = ({
                 <WhatsAppIcon className="w-4 h-4" />
               </motion.a>
 
-              {/* UPI & Buy Me a Coffee Support Button */}
+              {/* Direct UPI Support Button */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={openSupport}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/10 light:bg-amber-50 border border-amber-500/30 text-amber-400 dark:text-amber-400 light:text-amber-700 text-xs font-semibold shadow-sm hover:bg-amber-500/20 transition-all cursor-pointer whitespace-nowrap"
-                title="Support via UPI or Buy Me a Coffee"
+                title="Support via UPI"
               >
-                <Coffee className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>Support ☕</span>
+                <Heart className="w-3.5 h-3.5 flex-shrink-0 text-rose-400 fill-rose-400/20" />
+                <span>Support ❤️</span>
               </motion.button>
 
               {/* Glowing Let's Connect Button */}

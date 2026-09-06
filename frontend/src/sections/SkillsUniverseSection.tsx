@@ -142,14 +142,20 @@ export const SkillsUniverseSection: React.FC<SkillsUniverseSectionProps> = ({ sk
     >
       {/* Ambient background glows matching site design system */}
       <div
-        className={`absolute top-1/4 -left-48 w-[520px] h-[520px] rounded-full blur-[120px] pointer-events-none transition-opacity duration-300 ${
-          isDark ? 'bg-cyan-500/12' : 'bg-cyan-500/10'
-        }`}
+        className="absolute top-1/4 -left-48 w-[520px] h-[520px] rounded-full pointer-events-none transition-opacity duration-300"
+        style={{
+          background: isDark
+            ? 'radial-gradient(circle, rgba(6, 182, 212, 0.12) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(6, 182, 212, 0.10) 0%, transparent 70%)',
+        }}
       />
       <div
-        className={`absolute top-1/3 -right-48 w-[520px] h-[520px] rounded-full blur-[120px] pointer-events-none transition-opacity duration-300 ${
-          isDark ? 'bg-purple-600/12' : 'bg-purple-600/8'
-        }`}
+        className="absolute top-1/3 -right-48 w-[520px] h-[520px] rounded-full pointer-events-none transition-opacity duration-300"
+        style={{
+          background: isDark
+            ? 'radial-gradient(circle, rgba(147, 51, 234, 0.12) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(147, 51, 234, 0.08) 0%, transparent 70%)',
+        }}
       />
 
       <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">

@@ -70,8 +70,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       className="relative min-h-0 pt-20 pb-8 sm:pt-24 sm:pb-10 lg:pt-28 lg:pb-12 flex items-center justify-center overflow-hidden"
     >
       {/* Subtle Background Radial Glows */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 -right-32 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div
+        className="absolute top-1/4 -left-32 w-96 h-96 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%)' }}
+      />
+      <div
+        className="absolute bottom-10 -right-32 w-96 h-96 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(147, 51, 234, 0.15) 0%, transparent 70%)' }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">

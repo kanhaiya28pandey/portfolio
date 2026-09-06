@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 
 export const DynamicBackground: React.FC = () => {
@@ -67,99 +66,63 @@ export const DynamicBackground: React.FC = () => {
         }`}
       />
 
-      {/* 5. Animated Luminous Floating Ambient Orbs (GPU Accelerated) */}
-      {/* Orb 1: Top Left - Cyan / Azure */}
-      <motion.div
-        animate={{
-          x: [0, 40, -25, 0],
-          y: [0, -35, 25, 0],
-          scale: [1, 1.12, 0.95, 1],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className={`absolute -top-24 -left-24 w-[38rem] h-[38rem] rounded-full blur-3xl transition-colors duration-700 pointer-events-none ${
-          isDark ? 'bg-cyan-500/15' : 'bg-sky-400/25'
-        }`}
-      />
+      {/* 5. High-Performance Luminous Ambient Glow Fields (Zero GPU Recomposition Cost) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Top-Left Cyan Field */}
+        <div
+          className="absolute -top-24 -left-24 w-[38rem] h-[38rem] rounded-full pointer-events-none transition-all duration-700"
+          style={{
+            background: isDark
+              ? 'radial-gradient(circle, rgba(6,182,212,0.13) 0%, transparent 68%)'
+              : 'radial-gradient(circle, rgba(56,189,248,0.2) 0%, transparent 68%)',
+          }}
+        />
 
-      {/* Orb 2: Center Right - Blue / Indigo */}
-      <motion.div
-        animate={{
-          x: [0, -45, 30, 0],
-          y: [0, 40, -35, 0],
-          scale: [1, 1.15, 0.9, 1],
-        }}
-        transition={{
-          duration: 22,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className={`absolute top-1/3 -right-32 w-[40rem] h-[40rem] rounded-full blur-3xl transition-colors duration-700 pointer-events-none ${
-          isDark ? 'bg-blue-600/15' : 'bg-indigo-300/25'
-        }`}
-      />
+        {/* Center-Right Indigo Field */}
+        <div
+          className="absolute top-1/3 -right-32 w-[40rem] h-[40rem] rounded-full pointer-events-none transition-all duration-700"
+          style={{
+            background: isDark
+              ? 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 68%)'
+              : 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 68%)',
+          }}
+        />
 
-      {/* Orb 3: Bottom Left - Purple / Violet */}
-      <motion.div
-        animate={{
-          x: [0, 35, -30, 0],
-          y: [0, -25, 35, 0],
-          scale: [0.95, 1.1, 1, 0.95],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className={`absolute bottom-1/4 -left-20 w-[36rem] h-[36rem] rounded-full blur-3xl transition-colors duration-700 pointer-events-none ${
-          isDark ? 'bg-purple-600/15' : 'bg-purple-300/20'
-        }`}
-      />
+        {/* Bottom-Left Purple Field */}
+        <div
+          className="absolute bottom-1/4 -left-20 w-[36rem] h-[36rem] rounded-full pointer-events-none transition-all duration-700"
+          style={{
+            background: isDark
+              ? 'radial-gradient(circle, rgba(147,51,234,0.11) 0%, transparent 68%)'
+              : 'radial-gradient(circle, rgba(168,85,247,0.16) 0%, transparent 68%)',
+          }}
+        />
 
-      {/* Orb 4: Bottom Right - Emerald / Cyan Accent */}
-      <motion.div
-        animate={{
-          x: [0, -30, 20, 0],
-          y: [0, 30, -20, 0],
-          scale: [1, 0.92, 1.08, 1],
-        }}
-        transition={{
-          duration: 24,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        className={`absolute -bottom-28 right-1/4 w-[34rem] h-[34rem] rounded-full blur-3xl transition-colors duration-700 pointer-events-none ${
-          isDark ? 'bg-emerald-500/10' : 'bg-teal-300/22'
-        }`}
-      />
+        {/* Bottom-Right Emerald Field */}
+        <div
+          className="absolute -bottom-28 right-1/4 w-[34rem] h-[34rem] rounded-full pointer-events-none transition-all duration-700"
+          style={{
+            background: isDark
+              ? 'radial-gradient(circle, rgba(16,185,129,0.09) 0%, transparent 68%)'
+              : 'radial-gradient(circle, rgba(20,184,166,0.15) 0%, transparent 68%)',
+          }}
+        />
+      </div>
 
-      {/* 6. Sparkling Star & Light Shimmer Nodes (Available in BOTH Dark & Light modes) */}
-      <div className={`absolute inset-0 transition-opacity duration-700 ${isDark ? 'opacity-60' : 'opacity-40'}`}>
+      {/* 6. Sparkling Star Nodes (Clean CSS Glow) */}
+      <div className={`absolute inset-0 transition-opacity duration-700 ${isDark ? 'opacity-50' : 'opacity-35'}`}>
         {[
-          { top: '14%', left: '18%', size: 2.5, delay: 0 },
-          { top: '26%', left: '84%', size: 3, delay: 1.5 },
-          { top: '42%', left: '10%', size: 2, delay: 2.2 },
-          { top: '64%', left: '76%', size: 2.5, delay: 0.8 },
-          { top: '78%', left: '32%', size: 2, delay: 3.1 },
-          { top: '20%', left: '54%', size: 2.5, delay: 1.8 },
-          { top: '70%', left: '92%', size: 3, delay: 2.7 },
-          { top: '90%', left: '16%', size: 2, delay: 0.5 },
+          { top: '14%', left: '18%', size: 2.5 },
+          { top: '26%', left: '84%', size: 3 },
+          { top: '42%', left: '10%', size: 2 },
+          { top: '64%', left: '76%', size: 2.5 },
+          { top: '78%', left: '32%', size: 2 },
+          { top: '20%', left: '54%', size: 2.5 },
+          { top: '70%', left: '92%', size: 3 },
+          { top: '90%', left: '16%', size: 2 },
         ].map((star, idx) => (
-          <motion.div
+          <div
             key={idx}
-            animate={{
-              opacity: isDark ? [0.2, 0.9, 0.2] : [0.3, 0.85, 0.3],
-              scale: [0.8, 1.25, 0.8],
-            }}
-            transition={{
-              duration: 3 + (idx % 3),
-              repeat: Infinity,
-              delay: star.delay,
-              ease: 'easeInOut',
-            }}
             style={{
               top: star.top,
               left: star.left,
@@ -168,10 +131,10 @@ export const DynamicBackground: React.FC = () => {
             }}
             className={`absolute rounded-full ${
               isDark
-                ? 'bg-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.8)]'
+                ? 'bg-cyan-300 shadow-[0_0_6px_rgba(6,182,212,0.8)]'
                 : idx % 2 === 0
-                ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]'
-                : 'bg-amber-400 shadow-[0_0_8px_rgba(245,158,11,0.7)]'
+                ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]'
+                : 'bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.7)]'
             }`}
           />
         ))}

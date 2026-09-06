@@ -45,8 +45,14 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
   return (
     <section id="about" className="relative py-8 sm:py-10 lg:py-12 overflow-hidden">
       {/* Background ambient lighting */}
-      <div className="absolute top-1/2 left-0 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/3 right-0 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div
+        className="absolute top-1/2 left-0 w-80 h-80 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(37, 99, 235, 0.10) 0%, transparent 70%)' }}
+      />
+      <div
+        className="absolute top-1/3 right-0 w-80 h-80 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(147, 51, 234, 0.10) 0%, transparent 70%)' }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">

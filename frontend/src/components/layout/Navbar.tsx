@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Coffee, Send } from 'lucide-react';
+import { Menu, X, Heart, Send } from 'lucide-react';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { BrandLogo3D } from '../common/BrandLogo3D';
 import { FuturisticButton } from '../common/FuturisticButton';
@@ -164,17 +164,17 @@ export const Navbar: React.FC = () => {
 
         {/* Right: Actions (Support Me + Theme Toggle + Let's Connect) for Large Screens */}
         <div className="hidden lg:flex items-center gap-2 xl:gap-2.5 flex-shrink-0 flex-nowrap">
-          {/* Support Me / Buy Me a Coffee */}
+          {/* Support Me / Direct UPI */}
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.95 }}
             type="button"
             onClick={openSupport}
             className="group flex-shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-[11px] xl:text-xs font-semibold rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 light:border-amber-300/80 hover:bg-amber-500/20 hover:border-amber-400 transition-all duration-300 hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] cursor-pointer"
-            title="Support via UPI or Buy Me a Coffee"
+            title="Support via UPI"
           >
-            <Coffee className="w-3.5 h-3.5 flex-shrink-0 transition-transform group-hover:rotate-12 text-amber-400 light:text-amber-600" />
-            <span className="whitespace-nowrap">Support ☕</span>
+            <Heart className="w-3.5 h-3.5 flex-shrink-0 transition-transform group-hover:scale-110 text-rose-400 fill-rose-400/20" />
+            <span className="whitespace-nowrap">Support ❤️</span>
           </motion.button>
 
           {/* Animated Theme Toggle */}
@@ -204,10 +204,10 @@ export const Navbar: React.FC = () => {
             type="button"
             onClick={openSupport}
             className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 light:border-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer"
-            title="Support via UPI or Buy Me a Coffee"
+            title="Support via UPI"
           >
-            <Coffee className="w-3.5 h-3.5 flex-shrink-0 text-amber-400 light:text-amber-600" />
-            <span className="whitespace-nowrap">Support ☕</span>
+            <Heart className="w-3.5 h-3.5 flex-shrink-0 text-rose-400 fill-rose-400/20" />
+            <span className="whitespace-nowrap">Support ❤️</span>
           </motion.button>
 
           <ThemeToggle />
@@ -263,8 +263,8 @@ export const Navbar: React.FC = () => {
                 }}
                 className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 font-semibold text-xs whitespace-nowrap hover:bg-amber-500/20 transition-colors cursor-pointer"
               >
-                <Coffee className="w-4 h-4 flex-shrink-0" />
-                <span>Support ☕</span>
+                <Heart className="w-4 h-4 flex-shrink-0 text-rose-400 fill-rose-400/20" />
+                <span>Support via UPI ❤️</span>
               </button>
               <FuturisticButton
                 size="md"

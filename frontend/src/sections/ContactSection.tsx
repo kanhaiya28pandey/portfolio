@@ -160,9 +160,18 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profile, setting
   return (
     <section id="contact" className="relative py-8 sm:py-10 lg:py-14 overflow-hidden select-text">
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 -left-36 w-[480px] h-[480px] bg-blue-600/10 dark:bg-blue-600/10 light:bg-blue-300/20 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-36 w-[480px] h-[480px] bg-purple-600/10 dark:bg-purple-600/10 light:bg-purple-300/20 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[160px] pointer-events-none" />
+      <div
+        className="absolute top-1/4 -left-36 w-[480px] h-[480px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(37, 99, 235, 0.10) 0%, transparent 70%)' }}
+      />
+      <div
+        className="absolute bottom-1/4 -right-36 w-[480px] h-[480px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(147, 51, 234, 0.10) 0%, transparent 70%)' }}
+      />
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%)' }}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}

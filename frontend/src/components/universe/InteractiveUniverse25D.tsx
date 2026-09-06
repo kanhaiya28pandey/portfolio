@@ -47,6 +47,25 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
   // Offscreen visibility tracking to pause RAF loop and save mobile battery/CPU
   const isVisibleRef = useRef(true);
+  const isScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Detect active scrolling to yield 100% of CPU/touch thread on mobile & tablet
+  useEffect(() => {
+    const handleScroll = () => {
+      isScrollingRef.current = true;
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 120);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current || typeof IntersectionObserver === 'undefined') return;
@@ -74,8 +93,13 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       const delta = (time - lastTime) / 1000;
       lastTime = time;
 
-      // Only perform React state updates if universe is currently visible in viewport
-      if (isVisibleRef.current && !isDragging && time - lastRenderTime >= minFrameInterval) {
+      // Only perform React state updates if universe is currently visible in viewport and not actively scrolling
+      if (
+        isVisibleRef.current &&
+        !isDragging &&
+        !isScrollingRef.current &&
+        time - lastRenderTime >= minFrameInterval
+      ) {
         lastRenderTime = time;
         // Cosmic rotation (11.5 deg/sec); gracefully slows to 3.8 deg/sec on hover/selection
         const speed = hoveredSkillId || selectedSkill ? 3.8 : 11.5;
@@ -213,43 +237,8 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
   const handleMouseUp = () => setIsDragging(false);
 
-  // Touch Drag Handlers (Mobile & Tablet - preserves native vertical page scroll)
-  const isTouchScrollingRef = useRef(false);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      isTouchScrollingRef.current = false;
-      setIsDragging(true);
-      dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || e.touches.length !== 1 || isTouchScrollingRef.current) return;
-    const dx = e.touches[0].clientX - dragStartRef.current.x;
-    const dy = e.touches[0].clientY - dragStartRef.current.y;
-
-    // If vertical movement dominates or is equal, user is scrolling vertically.
-    // Immediately release universe drag so the mobile browser scrolls fluidly without any drag resistance.
-    if (Math.abs(dy) >= Math.abs(dx) && Math.abs(dy) > 2) {
-      isTouchScrollingRef.current = true;
-      setIsDragging(false);
-      return;
-    }
-
-    // Only horizontal swipe rotates the constellation
-    dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    setRotationAngle((prev) => prev - dx * 0.4);
-    setPanOffset((prev) => ({
-      x: Math.max(-60, Math.min(60, prev.x + dx * 0.15)),
-      y: prev.y,
-    }));
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    isTouchScrollingRef.current = false;
-  };
+  const rotateLeft = () => setRotationAngle((prev) => (prev - 35 + 360) % 360);
+  const rotateRight = () => setRotationAngle((prev) => (prev + 35) % 360);
 
   const resetView = () => {
     setPanOffset({ x: 0, y: 0 });
@@ -278,8 +267,6 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
       // Depth Opacity (Always high visibility, never disappears)
       const depthOpacity = depthFactor >= 0 ? 1.0 : 0.78 + (1 + depthFactor) * 0.15;
-      const blurPx = depthFactor < -0.4 ? Math.abs(depthFactor) * 0.8 : 0;
-
       return {
         ...item,
         x,
@@ -287,7 +274,6 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
         depthFactor,
         visualScale,
         depthOpacity,
-        blurPx,
         isForeground: depthFactor >= 0,
       };
     });
@@ -313,7 +299,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
   // Render an individual planetary node
   const renderNode = (item: (typeof computedNodes)[0]) => {
-    const { skill, x, y, visualScale, depthOpacity, blurPx } = item;
+    const { skill, x, y, visualScale, depthOpacity } = item;
     const isSelected = selectedSkill?.id === skill.id;
     const isHovered = hoveredSkillId === skill.id;
     const isRelated = selectedSkill
@@ -345,40 +331,31 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       <g
         key={skill.id}
         transform={`translate(${x}, ${y}) scale(${visualScale})`}
-        className="cursor-pointer"
+        className="cursor-pointer pointer-events-auto"
         onClick={() => onSelectSkill(skill)}
         onMouseEnter={() => onHoverSkill(skill.id)}
         onMouseLeave={() => onHoverSkill(null)}
         style={{
           opacity: finalOpacity,
-          filter: blurPx > 0 ? `blur(${blurPx}px)` : undefined,
-          transition: 'opacity 0.25s ease-out, filter 0.25s ease-out',
+          transition: 'opacity 0.25s ease-out',
         }}
       >
-        {/* Floating Bob Animation */}
-        <motion.g
-          animate={{ y: [-2, 2, -2] }}
-          transition={{
-            duration: 3.2 + (skill.id % 3) * 0.6,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        >
+        <g>
           {/* Glowing Aura Ring when Selected / Hovered / Related */}
           {(isSelected || isHovered || isRelated) && (
             <circle
               cx="0"
               cy="0"
-              r="37"
+              r="36"
               fill="none"
               stroke={isSelected ? '#00F0FF' : isRelated ? '#38BDF8' : theme.main}
-              strokeWidth="3"
-              filter="url(#laserBeamGlow)"
+              strokeWidth="2.5"
+              strokeDasharray={isRelated ? '4 4' : undefined}
               className={isSelected ? 'animate-pulse' : ''}
             />
           )}
 
-          {/* Frosted Glass Background Disc (Enlarged to r=30 for maximum visibility) */}
+          {/* Frosted Glass Background Disc */}
           <circle
             cx="0"
             cy="0"
@@ -393,15 +370,13 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
                 ? 'rgba(56, 189, 248, 0.75)'
                 : theme.main || '#38BDF8'
             }
-            strokeWidth={isSelected ? '3.2' : isHovered ? '2.8' : '2.2'}
+            strokeWidth={isSelected ? '3.2' : isHovered ? '2.8' : '2'}
             style={{
-              filter: `drop-shadow(0 6px 18px ${
-                isSelected
-                  ? '#00F0FF'
-                  : isHovered
-                  ? theme.glow
-                  : 'rgba(0,0,0,0.85)'
-              })`,
+              filter: isSelected
+                ? 'drop-shadow(0 0 12px #00F0FF)'
+                : isHovered
+                ? `drop-shadow(0 0 10px ${theme.glow})`
+                : undefined,
             }}
           />
 
@@ -415,7 +390,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
             strokeWidth="1.2"
           />
 
-          {/* Vivid Tech Logo (Enlarged to 34x34) */}
+          {/* Vivid Tech Logo */}
           <foreignObject
             x="-17"
             y="-17"
@@ -423,7 +398,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
             height="34"
             className="pointer-events-none overflow-visible"
           >
-            <div className="w-full h-full flex items-center justify-center filter drop-shadow-[0_2px_5px_rgba(0,0,0,0.55)]">
+            <div className="w-full h-full flex items-center justify-center">
               <TechLogo
                 name={skill.name}
                 iconKey={skill.iconKey}
@@ -446,7 +421,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
               style={{
                 filter: isSelected
                   ? 'drop-shadow(0 0 10px rgba(0,240,255,0.7))'
-                  : 'drop-shadow(0 2px 6px rgba(0,0,0,0.85))',
+                  : undefined,
               }}
             />
             <text
@@ -474,7 +449,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
                 stroke={isSelected ? '#00F0FF' : '#38BDF8'}
                 strokeWidth="1.5"
                 style={{
-                  filter: 'drop-shadow(0 2px 10px rgba(0,240,255,0.5))',
+                  filter: 'drop-shadow(0 2px 8px rgba(0,240,255,0.4))',
                 }}
               />
               <text
@@ -487,7 +462,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
               </text>
             </g>
           )}
-        </motion.g>
+        </g>
       </g>
     );
   };
@@ -499,11 +474,8 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
       style={{ touchAction: 'pan-y' }}
-      className={`relative w-full h-[500px] sm:h-[540px] lg:h-[570px] rounded-2xl overflow-hidden select-none cursor-grab active:cursor-grabbing touch-pan-y transition-colors duration-300 ${
+      className={`relative w-full h-[480px] sm:h-[520px] lg:h-[560px] rounded-2xl overflow-hidden select-none cursor-grab active:cursor-grabbing touch-pan-y transition-colors duration-300 ${
         isDark
           ? 'bg-[#030714] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.7)]'
           : 'bg-[#050B1E] border-2 border-slate-300/80 shadow-[0_20px_50px_rgba(15,23,42,0.18)]'
@@ -546,11 +518,20 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       {/* 1. Deep Space Nebula, Meteors & Ambient Cosmic Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Soft Violet Nebula top-left */}
-        <div className="absolute -top-24 -left-20 w-[440px] h-[440px] rounded-full blur-[100px] bg-purple-600/20" />
+        <div
+          className="absolute -top-24 -left-20 w-[440px] h-[440px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(147, 51, 234, 0.22) 0%, transparent 70%)' }}
+        />
         {/* Electric Blue/Cyan Nebula center-bottom */}
-        <div className="absolute top-1/3 left-1/4 w-[560px] h-[360px] rounded-full blur-[110px] bg-cyan-500/18" />
+        <div
+          className="absolute top-1/3 left-1/4 w-[560px] h-[360px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse, rgba(6, 182, 212, 0.20) 0%, transparent 70%)' }}
+        />
         {/* Royal Blue Nebula right */}
-        <div className="absolute -bottom-20 -right-20 w-[460px] h-[460px] rounded-full blur-[100px] bg-blue-700/20" />
+        <div
+          className="absolute -bottom-20 -right-20 w-[460px] h-[460px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(29, 78, 216, 0.22) 0%, transparent 70%)' }}
+        />
 
         {/* Real Universe Passing Meteorites / Shooting Stars */}
         <div
@@ -832,8 +813,8 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
             const orbColor = idx === 0 ? '#00F0FF' : idx === 1 ? '#C084FC' : '#F59E0B';
             return (
               <g key={`energy-particle-${idx}`} transform={`translate(${orbX}, ${orbY})`}>
-                <circle cx="0" cy="0" r="5" fill={orbColor} filter="url(#laserBeamGlow)" className="animate-pulse" />
-                <circle cx="0" cy="0" r="2.2" fill="#FFFFFF" />
+                <circle cx="0" cy="0" r="4.5" fill={orbColor} />
+                <circle cx="0" cy="0" r="2" fill="#FFFFFF" />
               </g>
             );
           })}
@@ -851,8 +832,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
               x2={selectedNodePos.x}
               y2={selectedNodePos.y}
               stroke="#00F0FF"
-              strokeWidth="3"
-              filter="url(#laserBeamGlow)"
+              strokeWidth="2.5"
               strokeLinecap="round"
             />
           )}
@@ -865,36 +845,59 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       </div>
 
       {/* 3. Bottom Minimal Controls Bar (Responsive on all screen sizes, No Zoom) */}
-      <div className="absolute bottom-3.5 inset-x-0 flex items-center justify-between px-4 sm:px-6 pointer-events-none z-30">
+      <div className="absolute bottom-3.5 inset-x-0 flex items-center justify-between px-3 sm:px-6 pointer-events-none z-30 gap-2">
         {/* Instruction pill */}
         <div
-          className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-[11px] font-mono shadow-lg backdrop-blur-md transition-colors ${
+          className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-[11px] font-mono shadow-lg backdrop-blur-md transition-colors ${
             isDark
               ? 'bg-slate-950/85 border border-white/10 text-slate-300'
               : 'bg-white/95 border border-slate-300 text-slate-800 shadow-md font-semibold'
           }`}
         >
           <span className="w-2.5 h-3.5 border border-cyan-500 rounded-sm inline-block relative after:content-[''] after:w-0.5 after:h-1 after:bg-cyan-500 after:absolute after:top-0.5 after:left-1/2 after:-translate-x-1/2" />
-          <span className="hidden sm:inline">Drag to rotate</span>
-          <span className="sm:hidden">Swipe sideways to rotate</span>
-          <span className="text-slate-400">•</span>
-          <span className="hidden sm:inline">Click planet to inspect</span>
-          <span className="sm:hidden">Tap to inspect</span>
+          <span className="hidden sm:inline">Drag to rotate • Click planet to inspect</span>
+          <span className="sm:hidden">Tap planet to inspect</span>
         </div>
 
-        {/* Reset View button */}
-        <button
-          type="button"
-          onClick={resetView}
-          className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full text-[10px] sm:text-[11px] font-mono transition-colors shadow-lg backdrop-blur-md ${
-            isDark
-              ? 'bg-slate-900/90 border border-white/10 hover:border-cyan-400/50 text-slate-300 hover:text-white'
-              : 'bg-white border border-slate-300 hover:border-blue-600 text-slate-800 hover:text-slate-950 shadow-md font-semibold'
-          }`}
-        >
-          <RotateCcw className="w-3.5 h-3.5 text-cyan-500" />
-          <span>Reset View</span>
-        </button>
+        {/* Rotate and Reset Controls */}
+        <div className="flex items-center gap-1.5 pointer-events-auto">
+          <button
+            type="button"
+            onClick={rotateLeft}
+            aria-label="Rotate left"
+            className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-mono transition-colors shadow-md cursor-pointer ${
+              isDark
+                ? 'bg-slate-900/90 border border-white/10 hover:border-cyan-400/50 text-slate-300 hover:text-white'
+                : 'bg-white border border-slate-300 hover:border-blue-600 text-slate-800 hover:text-slate-950 font-semibold'
+            }`}
+          >
+            ◀
+          </button>
+          <button
+            type="button"
+            onClick={rotateRight}
+            aria-label="Rotate right"
+            className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-mono transition-colors shadow-md cursor-pointer ${
+              isDark
+                ? 'bg-slate-900/90 border border-white/10 hover:border-cyan-400/50 text-slate-300 hover:text-white'
+                : 'bg-white border border-slate-300 hover:border-blue-600 text-slate-800 hover:text-slate-950 font-semibold'
+            }`}
+          >
+            ▶
+          </button>
+          <button
+            type="button"
+            onClick={resetView}
+            className={`inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-mono transition-colors shadow-lg backdrop-blur-md cursor-pointer ${
+              isDark
+                ? 'bg-slate-900/90 border border-white/10 hover:border-cyan-400/50 text-slate-300 hover:text-white'
+                : 'bg-white border border-slate-300 hover:border-blue-600 text-slate-800 hover:text-slate-950 shadow-md font-semibold'
+            }`}
+          >
+            <RotateCcw className="w-3 h-3 text-cyan-500" />
+            <span className="hidden sm:inline">Reset</span>
+          </button>
+        </div>
       </div>
     </div>
   );

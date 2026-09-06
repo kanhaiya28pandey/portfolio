@@ -141,14 +141,20 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
     >
       {/* Ambient background glows matching design system */}
       <div
-        className={`absolute top-1/4 -right-48 w-[520px] h-[520px] rounded-full blur-[130px] pointer-events-none transition-opacity duration-300 ${
-          isDark ? 'bg-indigo-600/12' : 'bg-indigo-500/10'
-        }`}
+        className="absolute top-1/4 -right-48 w-[520px] h-[520px] rounded-full pointer-events-none transition-opacity duration-300"
+        style={{
+          background: isDark
+            ? 'radial-gradient(circle, rgba(79, 70, 229, 0.12) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(99, 102, 241, 0.10) 0%, transparent 70%)',
+        }}
       />
       <div
-        className={`absolute top-2/3 -left-48 w-[520px] h-[520px] rounded-full blur-[130px] pointer-events-none transition-opacity duration-300 ${
-          isDark ? 'bg-blue-600/10' : 'bg-blue-500/8'
-        }`}
+        className="absolute top-2/3 -left-48 w-[520px] h-[520px] rounded-full pointer-events-none transition-opacity duration-300"
+        style={{
+          background: isDark
+            ? 'radial-gradient(circle, rgba(37, 99, 235, 0.10) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)',
+        }}
       />
 
       <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">

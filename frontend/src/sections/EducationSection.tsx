@@ -275,14 +275,20 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations }
     >
       {/* Background Ambient Glows */}
       <div
-        className={`absolute top-1/4 -left-48 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none transition-opacity duration-300 ${
-          isDark ? "bg-cyan-600/10" : "bg-cyan-500/5"
-        }`}
+        className="absolute top-1/4 -left-48 w-[500px] h-[500px] rounded-full pointer-events-none transition-opacity duration-300"
+        style={{
+          background: isDark
+            ? 'radial-gradient(circle, rgba(6, 182, 212, 0.10) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(6, 182, 212, 0.05) 0%, transparent 70%)',
+        }}
       />
       <div
-        className={`absolute bottom-1/4 -right-48 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none transition-opacity duration-300 ${
-          isDark ? "bg-indigo-600/10" : "bg-indigo-500/5"
-        }`}
+        className="absolute bottom-1/4 -right-48 w-[500px] h-[500px] rounded-full pointer-events-none transition-opacity duration-300"
+        style={{
+          background: isDark
+            ? 'radial-gradient(circle, rgba(79, 70, 229, 0.10) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, transparent 70%)',
+        }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8 sm:space-y-10">

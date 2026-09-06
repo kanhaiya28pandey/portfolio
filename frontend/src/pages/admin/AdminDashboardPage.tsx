@@ -203,7 +203,7 @@ export const AdminDashboardPage: React.FC = () => {
   const [settings, setSettings] = useState<Record<string, string>>({
     site_title: 'Kanhaiya | techwithkanhaiya',
     meta_description: 'Official portfolio of Kanhaiya Pandey - Full-Stack Developer & Software Engineer.',
-    support_coffee_url: 'https://buymeacoffee.com',
+    support_coffee_url: 'pandey123@okhdfcbank',
     availability_badge: 'Available for Full-Stack & AI Roles',
     dsa_solved_count: '150+',
     github_url: 'https://github.com/kanhaiya28pandey/',
@@ -7562,7 +7562,7 @@ export const AdminDashboardPage: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-mono text-slate-300 dark:text-slate-300 light:text-slate-700 mb-1">
-                      Support Channel (UPI ID or BuyMeACoffee URL)
+                      Support UPI ID
                     </label>
                     <input
                       type="text"
@@ -7570,11 +7570,11 @@ export const AdminDashboardPage: React.FC = () => {
                       onChange={(e) =>
                         setSettings({ ...settings, support_coffee_url: e.target.value })
                       }
-                      placeholder="e.g. pandey123@okhdfcbank or https://buymeacoffee.com/kanhaiyapandey"
+                      placeholder="e.g. pandey123@okhdfcbank"
                       className="w-full px-3.5 py-2 rounded-xl bg-white/5 dark:bg-white/5 light:bg-slate-100 border border-white/10 dark:border-white/10 light:border-slate-300 text-slate-200 dark:text-slate-200 light:text-slate-900 font-mono text-xs focus:outline-none focus:border-amber-500"
                     />
                     <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-400 light:text-slate-500">
-                      Enter your UPI ID (e.g. <span className="text-amber-400 font-mono">pandey123@okhdfcbank</span>) for instant QR code scan & pay, or an external payment URL.
+                      Enter your UPI ID (e.g. <span className="text-amber-400 font-mono">pandey123@okhdfcbank</span>) for instant QR code generation and direct UPI payments.
                     </p>
                   </div>
                 </div>

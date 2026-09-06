@@ -5,10 +5,8 @@ import {
   X,
   Copy,
   Check,
-  ExternalLink,
   QrCode,
   Smartphone,
-  Coffee,
   ShieldCheck,
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -21,10 +19,10 @@ interface SupportModalProps {
 }
 
 const PRESET_AMOUNTS = [
-  { value: 50, label: '₹50', emoji: '☕', desc: 'Chai' },
-  { value: 100, label: '₹100', emoji: '☕', desc: 'Coffee' },
-  { value: 250, label: '₹250', emoji: '🍕', desc: 'Snacks' },
-  { value: 500, label: '₹500', emoji: '🚀', desc: 'Super Fan' },
+  { value: 50, label: '₹50', emoji: '⚡', desc: 'Cheer' },
+  { value: 100, label: '₹100', emoji: '🚀', desc: 'Support' },
+  { value: 250, label: '₹250', emoji: '⭐', desc: 'Special' },
+  { value: 500, label: '₹500', emoji: '💎', desc: 'Super Fan' },
 ];
 
 export const SupportModal: React.FC<SupportModalProps> = ({
@@ -73,8 +71,6 @@ export const SupportModal: React.FC<SupportModalProps> = ({
   const upiPayUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(fullName)}&am=${activeAmount}&cu=INR&tn=Support%20${encodeURIComponent(fullName)}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(upiPayUri)}`;
 
-  const isExternalUrl = rawHandle.startsWith('http://') || rawHandle.startsWith('https://');
-  const externalUrl = isExternalUrl ? rawHandle : 'https://buymeacoffee.com';
 
   const handleCopyUpi = () => {
     navigator.clipboard.writeText(upiId);
@@ -130,10 +126,10 @@ export const SupportModal: React.FC<SupportModalProps> = ({
             {/* Header */}
             <div className="text-center space-y-1 mb-3">
               <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/30 mb-0.5">
-                <Coffee className="w-5 h-5" />
+                <Smartphone className="w-5 h-5" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold tracking-tight">
-                Support & Buy Me a Coffee
+                Support via Direct UPI
               </h3>
               <p className={`text-xs max-w-xs mx-auto ${
                 isDark ? 'text-slate-400' : 'text-slate-600'
@@ -289,23 +285,6 @@ export const SupportModal: React.FC<SupportModalProps> = ({
                 <Smartphone className="w-4 h-4 flex-shrink-0" />
                 <span>Pay ₹{activeAmount} via UPI App (GPay / PhonePe / Paytm)</span>
               </a>
-
-              {/* Optional External link */}
-              {isExternalUrl && (
-                <a
-                  href={externalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl border text-[11px] font-medium transition-colors text-center ${
-                    isDark
-                      ? 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-400'
-                      : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-600'
-                  }`}
-                >
-                  <span>Support via Buy Me a Coffee</span>
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
             </div>
 
             {/* Guarantee Badge */}
