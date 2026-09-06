@@ -5,6 +5,7 @@ import { BrandLogo3D } from '../common/BrandLogo3D';
 import { FuturisticButton } from '../common/FuturisticButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSupportModal } from '../../context/SupportModalContext';
+import { fetchPortfolioOverview } from '../../services/api';
 
 interface NavItem {
   label: string;
@@ -29,6 +30,14 @@ export const Navbar: React.FC = () => {
   const [hasAchievements, setHasAchievements] = useState(false);
 
   useEffect(() => {
+    fetchPortfolioOverview().then((overview) => {
+      if (overview?.achievements && overview.achievements.length > 0) {
+        setHasAchievements(true);
+      } else {
+        setHasAchievements(false);
+      }
+    });
+
     const checkAchievements = () => {
       const el = document.getElementById('achievements');
       setHasAchievements(!!el);

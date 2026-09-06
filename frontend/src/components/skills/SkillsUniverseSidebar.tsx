@@ -119,7 +119,7 @@ export const SkillsUniverseSidebar: React.FC<SkillsUniverseSidebarProps> = ({
       } ${className}`}
     >
       {/* 1. Category Filter Navigation List */}
-      <div className="space-y-1.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-1.5 sm:gap-2">
         {categories.map((cat) => {
           const Icon = cat.icon;
           const isActive = activeCategory === cat.id;

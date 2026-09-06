@@ -47,25 +47,6 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
   // Offscreen visibility tracking to pause RAF loop and save mobile battery/CPU
   const isVisibleRef = useRef(true);
-  const isScrollingRef = useRef(false);
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Detect active scrolling to yield 100% of CPU/touch thread on mobile & tablet
-  useEffect(() => {
-    const handleScroll = () => {
-      isScrollingRef.current = true;
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = setTimeout(() => {
-        isScrollingRef.current = false;
-      }, 120);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-    };
-  }, []);
 
   useEffect(() => {
     if (!containerRef.current || typeof IntersectionObserver === 'undefined') return;
@@ -79,25 +60,24 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  // Continuous Cinematic Orbital Motion Clock - Throttled smoothly on mobile
+  // Continuous Cinematic Orbital Motion Clock - Moves continuously at all times
   useEffect(() => {
     let animationFrameId: number;
     let lastTime = performance.now();
     let lastRenderTime = performance.now();
 
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    // On mobile screens, throttle state updates to ~35fps (28ms) to save CPU & touch threads; desktop runs at full 60fps
-    const minFrameInterval = isMobile ? 28 : 16;
+    // Desktop runs at 60fps, mobile throttled gracefully to ~40fps for high smoothness & battery efficiency
+    const minFrameInterval = isMobile ? 24 : 16;
 
     const animate = (time: number) => {
       const delta = (time - lastTime) / 1000;
       lastTime = time;
 
-      // Only perform React state updates if universe is currently visible in viewport and not actively scrolling
+      // Moves continuously whenever visible in viewport, whether scrolling or stopped
       if (
         isVisibleRef.current &&
         !isDragging &&
-        !isScrollingRef.current &&
         time - lastRenderTime >= minFrameInterval
       ) {
         lastRenderTime = time;

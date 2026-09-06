@@ -124,24 +124,32 @@ export const HomePage: React.FC = () => {
       </LazySection>
 
       {/* 6. Experience Section */}
-      <LazySection id="experience" fallbackTitle="Career Milestones" minHeight="min-h-[400px]">
-        <ExperienceSection experiences={data.experiences} />
-      </LazySection>
+      {data.experiences && data.experiences.length > 0 && (
+        <LazySection id="experience" fallbackTitle="Career Milestones" minHeight="min-h-[400px]">
+          <ExperienceSection experiences={data.experiences} />
+        </LazySection>
+      )}
 
       {/* 7. Education Section */}
-      <LazySection id="education" fallbackTitle="Academic Credentials" minHeight="min-h-[420px]">
-        <EducationSection educations={data.educations} />
-      </LazySection>
+      {data.educations && data.educations.length > 0 && (
+        <LazySection id="education" fallbackTitle="Academic Credentials" minHeight="min-h-[420px]">
+          <EducationSection educations={data.educations} />
+        </LazySection>
+      )}
 
       {/* 8. Certificates Section */}
-      <LazySection id="certificates" fallbackTitle="Verified Certifications" minHeight="min-h-[420px]">
-        <CertificatesSection certificates={data.certificates} />
-      </LazySection>
+      {data.certificates && data.certificates.length > 0 && (
+        <LazySection id="certificates" fallbackTitle="Verified Certifications" minHeight="min-h-[420px]">
+          <CertificatesSection certificates={data.certificates} />
+        </LazySection>
+      )}
 
       {/* 9. Achievements & Highlights Section */}
-      <LazySection id="achievements" fallbackTitle="Honors & Achievements" minHeight="min-h-[350px]">
-        <AchievementsSection achievements={data.achievements} />
-      </LazySection>
+      {data.achievements && data.achievements.length > 0 && (
+        <LazySection id="achievements" fallbackTitle="Honors & Achievements" minHeight="min-h-[350px]">
+          <AchievementsSection achievements={data.achievements} />
+        </LazySection>
+      )}
 
       {/* 10. Work With Me / Opportunities Section */}
       <LazySection fallbackTitle="Collaboration Protocols" minHeight="min-h-[280px]">
