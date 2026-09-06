@@ -22,7 +22,7 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, onClo
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, [skill, onClose]);
 

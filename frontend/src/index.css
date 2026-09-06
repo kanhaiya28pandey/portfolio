@@ -12,7 +12,15 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: pan-y;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html:focus-within {
+      scroll-behavior: smooth;
+    }
   }
 
   body {
@@ -20,11 +28,16 @@
     color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
+    overflow-y: auto;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
   }
 
   #root {
     min-height: 100vh;
     width: 100%;
     position: relative;
+    overflow-x: hidden;
   }
 }

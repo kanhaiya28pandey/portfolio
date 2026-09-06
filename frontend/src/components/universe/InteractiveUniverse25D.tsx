@@ -192,28 +192,43 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
   const handleMouseUp = () => setIsDragging(false);
 
-  // Touch Drag Handlers (Mobile & Tablet)
+  // Touch Drag Handlers (Mobile & Tablet - preserves native vertical page scroll)
+  const isTouchScrollingRef = useRef(false);
+
   const handleTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 1) {
+      isTouchScrollingRef.current = false;
       setIsDragging(true);
       dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || e.touches.length !== 1) return;
+    if (!isDragging || e.touches.length !== 1 || isTouchScrollingRef.current) return;
     const dx = e.touches[0].clientX - dragStartRef.current.x;
     const dy = e.touches[0].clientY - dragStartRef.current.y;
-    dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
 
+    // If vertical movement dominates, the user is scrolling the page vertically.
+    // Immediately release universe drag so the mobile browser scrolls fluidly without lag.
+    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 4) {
+      isTouchScrollingRef.current = true;
+      setIsDragging(false);
+      return;
+    }
+
+    // Only horizontal swipe rotates the constellation
+    dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     setRotationAngle((prev) => prev - dx * 0.4);
     setPanOffset((prev) => ({
       x: Math.max(-60, Math.min(60, prev.x + dx * 0.15)),
-      y: Math.max(-40, Math.min(40, prev.y + dy * 0.15)),
+      y: prev.y,
     }));
   };
 
-  const handleTouchEnd = () => setIsDragging(false);
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    isTouchScrollingRef.current = false;
+  };
 
   const resetView = () => {
     setPanOffset({ x: 0, y: 0 });
@@ -466,7 +481,8 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className={`relative w-full h-[500px] sm:h-[540px] lg:h-[570px] rounded-2xl overflow-hidden select-none cursor-grab active:cursor-grabbing transition-colors duration-300 ${
+      style={{ touchAction: 'pan-y' }}
+      className={`relative w-full h-[500px] sm:h-[540px] lg:h-[570px] rounded-2xl overflow-hidden select-none cursor-grab active:cursor-grabbing touch-pan-y transition-colors duration-300 ${
         isDark
           ? 'bg-[#030714] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.7)]'
           : 'bg-[#050B1E] border-2 border-slate-300/80 shadow-[0_20px_50px_rgba(15,23,42,0.18)]'
@@ -838,9 +854,11 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
           }`}
         >
           <span className="w-2.5 h-3.5 border border-cyan-500 rounded-sm inline-block relative after:content-[''] after:w-0.5 after:h-1 after:bg-cyan-500 after:absolute after:top-0.5 after:left-1/2 after:-translate-x-1/2" />
-          <span>Drag to rotate</span>
+          <span className="hidden sm:inline">Drag to rotate</span>
+          <span className="sm:hidden">Swipe sideways to rotate</span>
           <span className="text-slate-400">•</span>
-          <span>Click planet to inspect</span>
+          <span className="hidden sm:inline">Click planet to inspect</span>
+          <span className="sm:hidden">Tap to inspect</span>
         </div>
 
         {/* Reset View button */}

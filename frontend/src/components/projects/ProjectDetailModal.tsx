@@ -154,7 +154,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, [project, onClose]);
 
