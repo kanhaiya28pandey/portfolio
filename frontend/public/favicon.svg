@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="50%" stop-color="#090E17" />
+      <stop offset="100%" stop-color="#020408" />
+    </linearGradient>
+
+    <!-- Outer Luminous Border Ring -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="45%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+
+    <!-- Left Pillar 3D Front -->
+    <linearGradient id="stemFront" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+
+    <!-- Left Pillar 3D Side Shadow -->
+    <linearGradient id="stemSide" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+
+    <!-- Upper Arm 3D Face -->
+    <linearGradient id="upperArmFront" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="50%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#E0F2FE" />
+    </linearGradient>
+
+    <!-- Upper Arm Bevel -->
+    <linearGradient id="upperArmBevel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+
+    <!-- Lower Arm 3D Face -->
+    <linearGradient id="lowerArmFront" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="60%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#C084FC" />
+    </linearGradient>
+
+    <!-- Lower Arm Bevel -->
+    <linearGradient id="lowerArmBevel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#312E81" />
+      <stop offset="100%" stop-color="#1E1B4B" />
+    </linearGradient>
+  </defs>
+
+  <!-- Base Obsidian Rounded Container -->
+  <rect x="6" y="6" width="116" height="116" rx="28" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="4" />
+
+  <!-- Inner Ambient Specular Highlight -->
+  <rect x="10" y="10" width="108" height="108" rx="24" fill="none" stroke="#FFFFFF" stroke-width="1.2" opacity="0.15" />
+
+  <!-- 3D Geometric "K" Letter Assembly -->
+  <g>
+    <!-- 1. LEFT VERTICAL STEM -->
+    <!-- Shadow side of stem -->
+    <path d="M26 29 L32 25 L32 99 L26 103 Z" fill="url(#stemSide)" />
+    <!-- Front Face of Stem -->
+    <rect x="28" y="26" width="16" height="76" rx="3" fill="url(#stemFront)" />
+    <!-- Specular Light Ridge on Stem -->
+    <line x1="30" y1="28" x2="30" y2="100" stroke="#E0F2FE" stroke-width="2" opacity="0.9" stroke-linecap="round" />
+
+    <!-- 2. UPPER DIAGONAL ARM (Ascending Crystal Blade) -->
+    <!-- Under-depth shadow facet -->
+    <path d="M44 65 L88 28 L98 38 L54 75 Z" fill="url(#upperArmBevel)" opacity="0.9" />
+    <!-- Front 3D Face -->
+    <path d="M44 60 L87 23 C89.5 21 93.5 21.5 95.5 24 L99 28.5 C101 31 100.5 35 98 37.5 L56 74 Z" fill="url(#upperArmFront)" />
+    <!-- Upper highlight ridge -->
+    <line x1="47" y1="58" x2="90" y2="23" stroke="#FFFFFF" stroke-width="2" opacity="0.95" stroke-linecap="round" />
+
+    <!-- 3. LOWER DIAGONAL ARM (Descending Crystal Blade) -->
+    <!-- Under-depth shadow facet -->
+    <path d="M50 56 L94 95 L84 105 L42 66 Z" fill="url(#lowerArmBevel)" opacity="0.95" />
+    <!-- Front 3D Face -->
+    <path d="M48 57 L92 94 C94 96 94 99.5 92 101.5 L88 105.5 C86 107.5 82.5 107.5 80.5 105.5 L40 67 Z" fill="url(#lowerArmFront)" />
+    <!-- Lower highlight ridge -->
+    <line x1="51" y1="60" x2="89" y2="93" stroke="#F5D0FE" stroke-width="2" opacity="0.85" stroke-linecap="round" />
+
+    <!-- 4. CENTRAL PHOTON FUSION CORE -->
+    <circle cx="50" cy="63" r="7" fill="#38BDF8" opacity="0.6" />
+    <circle cx="50" cy="63" r="4.5" fill="#38BDF8" />
+    <circle cx="50" cy="63" r="2.2" fill="#FFFFFF" />
+  </g>
+</svg>
