@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, Sparkles, Layers } from 'lucide-react';
 import { TechLogo } from '../common/TechIcons';
@@ -11,6 +12,13 @@ interface SkillDetailModalProps {
 }
 
 export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, onClose }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   // Accessibility: Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -26,7 +34,7 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, onClo
     };
   }, [skill, onClose]);
 
-  if (!skill) return null;
+  if (!mounted || !skill) return null;
 
   const { main, glow } = getCategoryColor(skill.category);
 
@@ -61,13 +69,13 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, onClo
       ? skill.usedInProjects
       : ['Digital Universe Portfolio & CMS', 'ResumeIQ (JobFit AI)'];
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={`Inspect ${skill.name} expertise`}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto isolate"
       >
         {/* 1. Backdrop Universe Blur */}
         <motion.div
@@ -76,7 +84,7 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, onClo
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl"
+          className="fixed inset-0 bg-slate-950/85 backdrop-blur-xl z-[99999]"
         />
 
         {/* 2. Glassmorphic Technology Inspector Modal Window */}
@@ -86,7 +94,7 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, onClo
           exit={{ opacity: 0, scale: 0.95, y: 16 }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col rounded-3xl bg-[#0A1223]/95 dark:bg-[#0A1223]/95 light:bg-white/95 backdrop-blur-2xl border border-blue-500/25 dark:border-blue-500/25 light:border-slate-300 shadow-[0_25px_70px_rgba(0,0,0,0.85)] z-10 overflow-hidden text-left"
+          className="relative w-full max-w-2xl max-h-[88vh] sm:max-h-[85vh] flex flex-col rounded-3xl bg-[#0A1223]/95 dark:bg-[#0A1223]/95 light:bg-white/95 backdrop-blur-2xl border border-blue-500/25 dark:border-blue-500/25 light:border-slate-300 shadow-[0_25px_70px_rgba(0,0,0,0.85)] z-[100000] overflow-hidden text-left"
         >
           {/* Subtle Cyber Grid Texture */}
           <div
@@ -255,6 +263,7 @@ export const SkillDetailModal: React.FC<SkillDetailModalProps> = ({ skill, onClo
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

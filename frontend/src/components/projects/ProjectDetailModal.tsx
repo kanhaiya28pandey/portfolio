@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ExternalLink, Sparkles, Layers, Calendar, Code2 } from 'lucide-react';
 import { GithubIcon } from '../common/BrandIcons';
@@ -143,6 +144,13 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   // Keyboard accessibility: Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -158,7 +166,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
     };
   }, [project, onClose]);
 
-  if (!project) return null;
+  if (!mounted || !project) return null;
 
   // Extract tools
   const getTools = (p: Project): string[] => {
@@ -206,13 +214,13 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
   const hasLive = Boolean(project.liveUrl && project.liveUrl.trim().length > 0);
   const hasGithub = Boolean(project.githubUrl && project.githubUrl.trim().length > 0);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={`Inspect ${project.title}`}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 overflow-hidden"
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-5 overflow-y-auto isolate"
       >
         {/* 1. Backdrop Blur Overlay (Clicking anywhere closes modal immediately) */}
         <motion.div
@@ -221,7 +229,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/80 backdrop-blur-md cursor-pointer"
+          className="fixed inset-0 bg-slate-950/85 backdrop-blur-md cursor-pointer z-[99999]"
         />
 
         {/* 2. Compact, Proportioned Modal Window */}
@@ -231,7 +239,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
           exit={{ opacity: 0, scale: 0.94, y: 16 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className={`relative w-full max-w-xl sm:max-w-2xl max-h-[80vh] sm:max-h-[82vh] flex flex-col rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] z-10 border overflow-hidden text-left ${
+          className={`relative w-full max-w-xl sm:max-w-2xl max-h-[88vh] sm:max-h-[85vh] flex flex-col rounded-2xl sm:rounded-3xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] z-[100000] border overflow-hidden text-left ${
             isDark
               ? 'bg-[#091124] border-white/15 text-slate-100'
               : 'bg-white border-slate-200 text-slate-900'
@@ -441,6 +449,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

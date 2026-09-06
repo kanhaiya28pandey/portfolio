@@ -45,18 +45,39 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
 
-  // Continuous Cinematic Orbital Motion Clock - Faster energetic rotation
+  // Offscreen visibility tracking to pause RAF loop and save mobile battery/CPU
+  const isVisibleRef = useRef(true);
+
+  useEffect(() => {
+    if (!containerRef.current || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+      },
+      { rootMargin: '120px 0px' }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Continuous Cinematic Orbital Motion Clock - Throttled smoothly on mobile
   useEffect(() => {
     let animationFrameId: number;
     let lastTime = performance.now();
+    let lastRenderTime = performance.now();
+
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    // On mobile screens, throttle state updates to ~35fps (28ms) to save CPU & touch threads; desktop runs at full 60fps
+    const minFrameInterval = isMobile ? 28 : 16;
 
     const animate = (time: number) => {
       const delta = (time - lastTime) / 1000;
       lastTime = time;
 
-      // Continuously rotate when user is not manually dragging
-      if (!isDragging) {
-        // Fast, energetic cosmic rotation (11.5 deg/sec); gracefully slows to 3.8 deg/sec on hover/selection
+      // Only perform React state updates if universe is currently visible in viewport
+      if (isVisibleRef.current && !isDragging && time - lastRenderTime >= minFrameInterval) {
+        lastRenderTime = time;
+        // Cosmic rotation (11.5 deg/sec); gracefully slows to 3.8 deg/sec on hover/selection
         const speed = hoveredSkillId || selectedSkill ? 3.8 : 11.5;
         setRotationAngle((prev) => (prev + delta * speed) % 360);
       }
@@ -208,9 +229,9 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
     const dx = e.touches[0].clientX - dragStartRef.current.x;
     const dy = e.touches[0].clientY - dragStartRef.current.y;
 
-    // If vertical movement dominates, the user is scrolling the page vertically.
-    // Immediately release universe drag so the mobile browser scrolls fluidly without lag.
-    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 4) {
+    // If vertical movement dominates or is equal, user is scrolling vertically.
+    // Immediately release universe drag so the mobile browser scrolls fluidly without any drag resistance.
+    if (Math.abs(dy) >= Math.abs(dx) && Math.abs(dy) > 2) {
       isTouchScrollingRef.current = true;
       setIsDragging(false);
       return;

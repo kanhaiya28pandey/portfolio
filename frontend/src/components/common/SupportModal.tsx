@@ -108,7 +108,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.93, y: 20 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className={`relative w-full max-w-md rounded-3xl p-5 sm:p-6 z-[100000] overflow-hidden border ${
+            className={`relative w-full max-w-md max-h-[90vh] sm:max-h-[88vh] flex flex-col rounded-3xl p-4 sm:p-6 z-[100000] overflow-y-auto overscroll-contain border ${
               isDark
                 ? 'bg-gradient-to-b from-[#0f172a] via-[#0b1120] to-[#070b14] border-amber-500/40 text-slate-100 shadow-[0_25px_80px_rgba(0,0,0,0.9)]'
                 : 'bg-white border-amber-400/60 text-slate-900 shadow-[0_25px_80px_rgba(245,158,11,0.25)]'
@@ -117,7 +117,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
             {/* Close Button */}
             <button
               onClick={onClose}
-              className={`absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer z-20 ${
+              className={`absolute top-3.5 right-3.5 p-2 rounded-full transition-colors cursor-pointer z-20 ${
                 isDark
                   ? 'bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950'
@@ -128,8 +128,8 @@ export const SupportModal: React.FC<SupportModalProps> = ({
             </button>
 
             {/* Header */}
-            <div className="text-center space-y-1.5 mb-4">
-              <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/30 mb-0.5">
+            <div className="text-center space-y-1 mb-3">
+              <div className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/30 mb-0.5">
                 <Coffee className="w-5 h-5" />
               </div>
               <h3 className="text-lg sm:text-xl font-bold tracking-tight">
@@ -231,7 +231,7 @@ export const SupportModal: React.FC<SupportModalProps> = ({
                     <img
                       src={qrCodeUrl}
                       alt={`UPI QR Code for ${fullName}`}
-                      className="w-36 h-36 sm:w-40 sm:h-40 object-contain rounded-xl"
+                      className="w-32 h-32 sm:w-36 sm:h-36 object-contain rounded-xl"
                       loading="eager"
                     />
                     <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-slate-950 text-amber-400 text-[10px] font-mono font-bold whitespace-nowrap shadow-md border border-amber-500/40">

@@ -103,7 +103,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
 
       transition.ready.then(() => {
-        // Expand the circular clip path smoothly in a cinematic, leisurely sweep from top-right past bottom-left
+        // Expand the circular clip path smoothly in a clean, snappy sweep
         const animation = root.animate(
           {
             clipPath: [
@@ -112,8 +112,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             ],
           },
           {
-            duration: 1150,
-            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            duration: 380,
+            easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
             pseudoElement: '::view-transition-new(root)',
             fill: 'forwards',
           }
@@ -147,7 +147,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         root.classList.remove('theme-transitioning');
         isRunningRef.current = false;
         setIsTransitioning(false);
-      }, 950);
+      }, 350);
     }
   };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
@@ -28,6 +29,22 @@ interface ActiveModalDoc {
 
 export const EducationSection: React.FC<EducationSectionProps> = ({ educations }) => {
   const [activeModalDoc, setActiveModalDoc] = useState<ActiveModalDoc | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (activeModalDoc) {
+      const original = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = original;
+      };
+    }
+  }, [activeModalDoc]);
   const [isDark, setIsDark] = useState(true);
 
   // Sync with document theme class
@@ -522,168 +539,181 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations }
       {/* ========================================================================= */}
       {/* 3. INTERACTIVE MARKSHEET / CERTIFICATE VIEWER MODAL                       */}
       {/* ========================================================================= */}
-      <AnimatePresence>
-        {activeModalDoc && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto"
-            onClick={() => setActiveModalDoc(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 20 }}
-              transition={{ duration: 0.25 }}
-              onClick={(e) => e.stopPropagation()}
-              className={`relative w-full max-w-lg rounded-3xl border p-6 sm:p-7 space-y-5 text-left shadow-2xl transition-all my-8 ${
-                isDark
-                  ? 'bg-[#091124] border-cyan-500/30 text-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.8)]'
-                  : 'bg-white border-slate-200 text-slate-900 shadow-2xl'
-              }`}
-            >
-              {/* Modal Top Header */}
+      {/* ========================================================================= */}
+      {/* 3. INTERACTIVE MARKSHEET / CERTIFICATE VIEWER MODAL                       */}
+      {/* ========================================================================= */}
+      {mounted &&
+        createPortal(
+          <AnimatePresence>
+            {activeModalDoc && (
               <div
-                className={`flex items-center justify-between pb-3 border-b ${
-                  isDark ? 'border-white/10' : 'border-slate-200'
-                }`}
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Inspect ${activeModalDoc.doc.title}`}
+                className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-5 overflow-y-auto isolate"
+                onClick={() => setActiveModalDoc(null)}
               >
-                <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider uppercase text-cyan-500">
-                  <Award className="w-4 h-4 text-cyan-500" />
-                  <span>Verified Academic Document</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveModalDoc(null)}
-                  className={`p-1 rounded-full transition-colors ${
-                    isDark
-                      ? 'text-slate-400 hover:text-white hover:bg-white/10'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
-                  }`}
-                  aria-label="Close"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+                {/* Backdrop */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[99999]"
+                />
 
-              {/* Modal Body */}
-              <div className="space-y-4">
-                <div>
-                  <span
-                    className={`px-2.5 py-0.5 rounded text-[10px] font-mono border uppercase ${
-                      isDark
-                        ? 'bg-cyan-950/80 text-cyan-300 border-cyan-500/30'
-                        : 'bg-cyan-50 text-cyan-800 border-cyan-300'
-                    }`}
-                  >
-                    {activeModalDoc.doc.type || 'DOCUMENT'}
-                  </span>
-                  <h4
-                    className={`text-xl font-bold mt-1.5 ${
-                      isDark ? 'text-white' : 'text-slate-900'
-                    }`}
-                  >
-                    {activeModalDoc.doc.title}
-                  </h4>
-                  <p
-                    className={`text-xs font-mono mt-0.5 ${
-                      isDark ? 'text-cyan-400' : 'text-cyan-700 font-medium'
-                    }`}
-                  >
-                    {activeModalDoc.degree}
-                  </p>
-                  <p
-                    className={`text-xs font-sans mt-0.5 ${
-                      isDark ? 'text-slate-400' : 'text-slate-600'
-                    }`}
-                  >
-                    {activeModalDoc.institution}
-                  </p>
-                </div>
-
-                {/* Preview / Download Card */}
-                <div
-                  className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-3 text-center ${
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.94, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.94, y: 20 }}
+                  transition={{ duration: 0.25 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`relative w-full max-w-lg max-h-[88vh] sm:max-h-[85vh] flex flex-col rounded-3xl border p-5 sm:p-7 space-y-4 text-left shadow-2xl transition-all z-[100000] overflow-y-auto overscroll-contain ${
                     isDark
-                      ? 'bg-white/[0.02] border-white/10'
-                      : 'bg-slate-50 border-slate-200'
+                      ? 'bg-[#091124] border-cyan-500/30 text-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.8)]'
+                      : 'bg-white border-slate-200 text-slate-900 shadow-2xl'
                   }`}
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
-                    <FileText className="w-7 h-7" />
+                  {/* Modal Top Header */}
+                  <div
+                    className={`flex items-center justify-between pb-3 border-b ${
+                      isDark ? 'border-white/10' : 'border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider uppercase text-cyan-500">
+                      <Award className="w-4 h-4 text-cyan-500" />
+                      <span>Verified Academic Document</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveModalDoc(null)}
+                      className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                        isDark
+                          ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                      }`}
+                      aria-label="Close"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
-                  <div className="space-y-1">
+
+                  {/* Modal Body */}
+                  <div className="space-y-4">
+                    <div>
+                      <span
+                        className={`px-2.5 py-0.5 rounded text-[10px] font-mono border uppercase ${
+                          isDark
+                            ? 'bg-cyan-950/80 text-cyan-300 border-cyan-500/30'
+                            : 'bg-cyan-50 text-cyan-800 border-cyan-300'
+                        }`}
+                      >
+                        {activeModalDoc.doc.type || 'DOCUMENT'}
+                      </span>
+                      <h4
+                        className={`text-xl font-bold mt-1.5 ${
+                          isDark ? 'text-white' : 'text-slate-900'
+                        }`}
+                      >
+                        {activeModalDoc.doc.title}
+                      </h4>
+                      <p
+                        className={`text-xs font-mono mt-0.5 ${
+                          isDark ? 'text-cyan-400' : 'text-cyan-700 font-medium'
+                        }`}
+                      >
+                        {activeModalDoc.degree}
+                      </p>
+                      <p
+                        className={`text-xs font-sans mt-0.5 ${
+                          isDark ? 'text-slate-400' : 'text-slate-600'
+                        }`}
+                      >
+                        {activeModalDoc.institution}
+                      </p>
+                    </div>
+
+                    {/* Preview / Academic Credential Card (No raw file path) */}
                     <div
-                      className={`text-sm font-bold font-mono ${
-                        isDark ? 'text-white' : 'text-slate-900'
+                      className={`p-4 rounded-2xl border flex flex-col items-center justify-center gap-2.5 text-center ${
+                        isDark
+                          ? 'bg-white/[0.03] border-cyan-500/20'
+                          : 'bg-slate-50 border-slate-200'
                       }`}
                     >
-                      Official Academic Record
+                      <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.15)]">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div className="space-y-1">
+                        <div
+                          className={`text-sm font-bold font-mono ${
+                            isDark ? 'text-white' : 'text-slate-900'
+                          }`}
+                        >
+                          Official Academic Record
+                        </div>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-medium">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          <span>Authentic &amp; Verified Document</span>
+                        </div>
+                      </div>
                     </div>
-                    <div
-                      className={`text-xs font-mono break-all max-w-xs ${
-                        isDark ? 'text-slate-400' : 'text-slate-600'
+
+                    <p
+                      className={`text-xs leading-relaxed font-sans ${
+                        isDark ? 'text-slate-300' : 'text-slate-600'
                       }`}
                     >
-                      {activeModalDoc.doc.fileUrl}
-                    </div>
+                      This marksheet/credential certifies academic performance and curriculum completion for Kanhaiya Pandey at {activeModalDoc.institution}.
+                    </p>
                   </div>
-                </div>
 
-                <p
-                  className={`text-xs leading-relaxed font-sans ${
-                    isDark ? 'text-slate-300' : 'text-slate-600'
-                  }`}
-                >
-                  This marksheet/credential certifies academic performance and curriculum completion for Kanhaiya Pandey at {activeModalDoc.institution}.
-                </p>
+                  {/* Modal Actions */}
+                  <div
+                    className={`pt-3 border-t flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 ${
+                      isDark ? 'border-white/10' : 'border-slate-200'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setActiveModalDoc(null)}
+                      className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-mono transition-colors text-center cursor-pointer ${
+                        isDark
+                          ? 'bg-white/5 hover:bg-white/10 text-slate-300'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      Close
+                    </button>
+
+                    <a
+                      href={activeModalDoc.doc.fileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-mono font-bold shadow-lg transition-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Open Document ↗</span>
+                    </a>
+
+                    <a
+                      href={activeModalDoc.doc.fileUrl}
+                      download
+                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all ${
+                        isDark
+                          ? 'bg-white/10 hover:bg-white/20 text-white'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'
+                      }`}
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download</span>
+                    </a>
+                  </div>
+                </motion.div>
               </div>
-
-              {/* Modal Actions */}
-              <div
-                className={`pt-3 border-t flex items-center justify-end gap-2.5 ${
-                  isDark ? 'border-white/10' : 'border-slate-200'
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setActiveModalDoc(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-mono transition-colors ${
-                    isDark
-                      ? 'bg-white/5 hover:bg-white/10 text-slate-300'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
-                  }`}
-                >
-                  Close
-                </button>
-
-                <a
-                  href={activeModalDoc.doc.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-mono font-bold shadow-lg transition-all"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Open Document ↗</span>
-                </a>
-
-                <a
-                  href={activeModalDoc.doc.fileUrl}
-                  download
-                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
-                    isDark
-                      ? 'bg-white/10 hover:bg-white/20 text-white'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'
-                  }`}
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download</span>
-                </a>
-              </div>
-            </motion.div>
-          </div>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
     </section>
   );
 };

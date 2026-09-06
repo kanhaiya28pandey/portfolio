@@ -94,15 +94,15 @@
   background: rgba(139, 92, 246, 0.6);
 }
 
-/* Smooth page-wide animated theme transition */
+/* Smooth page-wide animated theme transition (targeted containers to prevent mobile frame drop) */
 html.theme-transitioning,
-html.theme-transitioning *,
-html.theme-transitioning *::before,
-html.theme-transitioning *::after {
-  transition: background-color 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-              color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.65s cubic-bezier(0.4, 0, 0.2, 1) !important;
+html.theme-transitioning body,
+html.theme-transitioning #root,
+html.theme-transitioning header,
+html.theme-transitioning .glass-panel {
+  transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
   transition-delay: 0s !important;
 }
 

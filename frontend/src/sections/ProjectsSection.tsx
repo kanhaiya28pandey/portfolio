@@ -241,14 +241,14 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
                 <div
                   key={`project-card-${project.slug || project.title}-${project.id}`}
                   onClick={() => setSelectedProject(project)}
-                  className={`group cursor-pointer rounded-3xl border flex flex-col justify-between overflow-hidden transition-all duration-300 hover:-translate-y-2 select-text opacity-100 ${
+                  className={`group cursor-pointer rounded-3xl border flex flex-col justify-between overflow-hidden transition-all duration-300 hover:-translate-y-2 select-text opacity-100 h-full ${
                     isDark
                       ? 'bg-[#091124]/90 border-white/10 hover:border-cyan-500/40 shadow-[0_12px_32px_rgba(0,0,0,0.6)] hover:shadow-[0_22px_50px_rgba(0,0,0,0.8),0_0_22px_rgba(34,211,238,0.15)]'
                       : 'bg-white/95 border-slate-200/90 hover:border-blue-500/40 shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_20px_40px_rgba(59,130,246,0.15)]'
                   }`}
                 >
                   {/* Top: Project Picture Banner */}
-                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-950">
+                  <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-slate-950">
                     <img
                       src={thumbnail}
                       alt={project.title}
@@ -308,9 +308,9 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
 
                     {/* Middle: Card Content */}
                     <div className="p-5 sm:p-6 flex flex-col justify-between flex-1 space-y-4 text-left">
-                      <div className="space-y-2.5">
+                      <div className="space-y-2">
                         <h3
-                          className={`font-bold text-lg sm:text-xl font-sans tracking-tight line-clamp-1 transition-colors ${
+                          className={`font-bold text-lg sm:text-xl font-sans tracking-tight line-clamp-1 h-7 flex items-center transition-colors ${
                             isDark
                               ? 'text-white group-hover:text-cyan-400'
                               : 'text-slate-900 group-hover:text-blue-600'
@@ -320,7 +320,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
                         </h3>
 
                         <p
-                          className={`text-xs sm:text-sm font-sans leading-relaxed line-clamp-3 ${
+                          className={`text-xs sm:text-sm font-sans leading-relaxed line-clamp-3 h-14 overflow-hidden ${
                             isDark ? 'text-slate-300' : 'text-slate-600'
                           }`}
                         >
@@ -329,7 +329,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
                       </div>
 
                       {/* Tools Used (Capsule Pills) */}
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <div className="flex flex-wrap items-center content-start gap-1.5 pt-1 min-h-[3.25rem]">
                         {tools.map((tool, tIdx) => (
                           <span
                             key={tIdx}
@@ -346,7 +346,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
 
                       {/* Bottom Action Row: Live & GitHub Buttons */}
                       <div
-                        className={`pt-3.5 border-t flex items-center gap-2.5 transition-colors ${
+                        className={`pt-3.5 border-t mt-auto flex items-center gap-2.5 transition-colors ${
                           isDark ? 'border-white/10' : 'border-slate-100'
                         }`}
                       >

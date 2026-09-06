@@ -8,7 +8,6 @@ import {
   Code,
   Infinity as InfinityIcon,
   ChevronDown,
-  X,
 } from 'lucide-react';
 import { InteractiveUniverse25D } from '../components/universe/InteractiveUniverse25D';
 import {
@@ -30,15 +29,8 @@ export const SkillsUniverseSection: React.FC<SkillsUniverseSectionProps> = ({ sk
   const { theme: currentTheme } = useTheme();
   const isDark = currentTheme === 'dark';
 
-  // Default to Java as in Pic 1 reference
-  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(() => {
-    return (
-      skills.find((s) => s.name.toLowerCase() === 'java') ||
-      skills.find((s) => s.name.toLowerCase().includes('spring boot')) ||
-      skills[0] ||
-      null
-    );
-  });
+  // Initial state is null (no tech pre-selected so no phantom buttons appear on scroll)
+  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
 
   const [modalSkill, setModalSkill] = useState<Skill | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
@@ -277,16 +269,6 @@ export const SkillsUniverseSection: React.FC<SkillsUniverseSectionProps> = ({ sk
           </div>
         </div>
 
-        {/* Tablet / Mobile Inspector fallback (when screen < lg) */}
-        <div className="block lg:hidden w-full">
-          {selectedSkill && (
-            <TechInspectorCard
-              skill={selectedSkill}
-              onClose={handleCloseInspector}
-              onSelectRelated={handleSelectRelatedByName}
-            />
-          )}
-        </div>
 
         {/* ========================================================================= */}
         {/* 3. ALL TECHNOLOGIES DIRECTORY HEADER & CONTROLS (Matching Pic 1)          */}
@@ -676,19 +658,6 @@ export const SkillsUniverseSection: React.FC<SkillsUniverseSectionProps> = ({ sk
         onClose={handleCloseInspector}
       />
 
-      {/* Mobile Floating Quick-Close Bar when a Skill is Inspected */}
-      {selectedSkill && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 lg:hidden pointer-events-auto">
-          <button
-            type="button"
-            onClick={handleCloseInspector}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-600/90 hover:bg-red-500 text-white text-xs font-mono font-bold shadow-[0_8px_25px_rgba(220,38,38,0.55)] backdrop-blur-md border border-red-400/50 active:scale-95 transition-all cursor-pointer"
-          >
-            <X className="w-3.5 h-3.5" />
-            <span>Close {selectedSkill.name}</span>
-          </button>
-        </div>
-      )}
     </section>
   );
 };

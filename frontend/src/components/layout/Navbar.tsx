@@ -53,27 +53,34 @@ export const Navbar: React.FC = () => {
   }, [hasAchievements]);
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 15);
 
-      // Scroll Spy logic
-      const sections = navItems.map((item) => item.href.substring(1));
-      const scrollPosition = window.scrollY + 220;
-
-      for (const section of sections) {
-        const el = document.getElementById(section);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(section);
-            break;
+          // Scroll Spy logic (throttled to RAF)
+          const scrollPosition = window.scrollY + 200;
+          for (let i = navItems.length - 1; i >= 0; i--) {
+            const section = navItems[i].href.substring(1);
+            const el = document.getElementById(section);
+            if (el) {
+              const top = el.offsetTop;
+              if (scrollPosition >= top) {
+                setActiveSection(section);
+                break;
+              }
+            }
           }
-        }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, [navItems]);
 
@@ -91,7 +98,7 @@ export const Navbar: React.FC = () => {
     setTimeout(() => {
       const targetEl = document.getElementById(targetId);
       if (targetEl) {
-        const navHeight = 75;
+        const navHeight = 70;
         const bodyRect = document.body.getBoundingClientRect().top;
         const elementRect = targetEl.getBoundingClientRect().top;
         const elementPosition = elementRect - bodyRect;
@@ -110,10 +117,10 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header
-      className={`fixed top-0 left-0 right-0 z-50 border-b transition-[padding,background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-out ${
+      className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-200 ease-out ${
         isScrolled
-          ? 'py-3 bg-[#060913]/85 light:bg-white/85 backdrop-blur-xl border-blue-500/20 light:border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.35)] light:shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
-          : 'py-5 bg-transparent backdrop-blur-none border-transparent shadow-none'
+          ? 'py-2.5 sm:py-3 bg-[#060913]/90 dark:bg-[#060913]/90 light:bg-white/90 backdrop-blur-xl border-blue-500/20 light:border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.35)] light:shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
+          : 'py-2.5 sm:py-3 md:py-5 bg-[#060913]/85 dark:bg-[#060913]/85 light:bg-white/85 md:bg-transparent md:dark:bg-transparent md:light:bg-transparent backdrop-blur-lg md:backdrop-blur-none border-blue-500/10 md:border-transparent light:border-slate-200/60 shadow-sm md:shadow-none'
       }`}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 flex items-center justify-between gap-3 xl:gap-5 flex-nowrap w-full">
