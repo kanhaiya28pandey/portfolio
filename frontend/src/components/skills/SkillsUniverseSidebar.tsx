@@ -119,7 +119,7 @@ export const SkillsUniverseSidebar: React.FC<SkillsUniverseSidebarProps> = ({
       } ${className}`}
     >
       {/* 1. Category Filter Navigation List */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-1.5 sm:gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 gap-2">
         {categories.map((cat) => {
           const Icon = cat.icon;
           const isActive = activeCategory === cat.id;
@@ -137,9 +137,9 @@ export const SkillsUniverseSidebar: React.FC<SkillsUniverseSidebarProps> = ({
                   : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-transparent'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 min-w-0 pr-2">
                 <Icon
-                  className={`w-4 h-4 transition-colors ${
+                  className={`w-4 h-4 flex-shrink-0 transition-colors ${
                     isActive
                       ? 'text-white'
                       : isDark
@@ -147,12 +147,12 @@ export const SkillsUniverseSidebar: React.FC<SkillsUniverseSidebarProps> = ({
                       : 'text-slate-500 group-hover:text-blue-600'
                   }`}
                 />
-                <span className="tracking-wide">{cat.label}</span>
+                <span className="tracking-wide truncate whitespace-nowrap">{cat.label}</span>
               </div>
 
               {/* Count Badge */}
               <span
-                className={`px-2 py-0.5 rounded-md text-[11px] font-mono transition-colors ${
+                className={`flex-shrink-0 px-2 py-0.5 rounded-md text-[11px] font-mono transition-colors ${
                   isActive
                     ? 'bg-white/20 text-white font-bold'
                     : isDark
@@ -193,7 +193,7 @@ export const SkillsUniverseSidebar: React.FC<SkillsUniverseSidebarProps> = ({
             </button>
           ) : (
             <span
-              className={`absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[9px] font-mono pointer-events-none ${
+              className={`hidden sm:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded text-[9px] font-mono pointer-events-none ${
                 isDark
                   ? 'bg-slate-800/90 border border-slate-700 text-slate-400'
                   : 'bg-slate-200 border border-slate-300 text-slate-600'
@@ -217,7 +217,8 @@ export const SkillsUniverseSidebar: React.FC<SkillsUniverseSidebarProps> = ({
           <Lightbulb className="w-3.5 h-3.5" />
         </div>
         <p className="text-[11px] font-sans leading-relaxed">
-          Click a node, drag to rotate, scroll to zoom.
+          <span className="hidden sm:inline">Click a node, drag to rotate, scroll to zoom.</span>
+          <span className="sm:hidden">Tap any planet to inspect skills. Drag to rotate orbit.</span>
         </p>
       </div>
     </div>

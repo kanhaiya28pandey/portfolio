@@ -128,6 +128,7 @@ import type {
   Profile,
   AnalyticsSummary,
 } from '../../types/portfolio';
+import { resolveAssetUrl } from '../../utils/assetUrl';
 
 type ActiveTab =
   | 'overview'
@@ -6953,15 +6954,11 @@ export const AdminDashboardPage: React.FC = () => {
                 <div className="flex flex-col sm:flex-row items-center gap-6">
                   <div className="relative w-32 h-40 rounded-2xl overflow-hidden border border-white/20 bg-[#060913] shadow-lg flex-shrink-0 group">
                     <img
-                      src={
-                        settings.hero_avatar_url
-                          ? settings.hero_avatar_url.startsWith('http') ||
-                            settings.hero_avatar_url.startsWith('data:')
-                            ? settings.hero_avatar_url
-                            : `http://localhost:8080${settings.hero_avatar_url}`
-                          : '/assets/hero_avatar.jpg'
-                      }
+                      src={resolveAssetUrl(settings.hero_avatar_url) || '/assets/hero.png'}
                       alt="Hero Preview"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/hero.png';
+                      }}
                       className="w-full h-full object-cover object-top"
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] font-mono text-white text-center p-1">
@@ -7490,47 +7487,81 @@ export const AdminDashboardPage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-mono text-slate-300 mb-1 font-semibold">
-                      About Circle Photo (Image URL or Upload)
+                  <div className="md:col-span-2 pt-3 border-t border-white/10">
+                    <label className="block text-xs font-mono text-slate-300 mb-2 font-semibold">
+                      About Circle Photo (Circular Frame on About Section)
                     </label>
-                    <div className="flex items-center gap-3">
-                      <label className="cursor-pointer px-4 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-mono flex items-center gap-2 transition-all">
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>{uploading ? 'Uploading...' : 'Upload Photo'}</span>
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                          disabled={uploading}
-                          className="hidden"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            setUploading(true);
-                            try {
-                              const res = await uploadAdminFile(file, false);
-                              setSettings((prev) => ({
-                                ...prev,
-                                about_avatar_url: res.fileUrl,
-                              }));
-                              showNotice('success', 'About photo uploaded! Save settings to apply.');
-                            } catch (err: unknown) {
-                              showNotice('error', err instanceof Error ? err.message : 'Photo upload failed');
-                            } finally {
-                              setUploading(false);
-                            }
+                    <div className="flex flex-col sm:flex-row items-center gap-5">
+                      <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-purple-500/40 bg-[#060913] shadow-lg flex-shrink-0 group">
+                        <img
+                          src={resolveAssetUrl(settings.about_avatar_url) || '/assets/kanhaiya_real.jpg'}
+                          alt="About Preview"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/assets/kanhaiya_real.jpg';
                           }}
+                          className="w-full h-full object-cover object-top"
                         />
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.about_avatar_url || ''}
-                        onChange={(e) =>
-                          setSettings({ ...settings, about_avatar_url: e.target.value })
-                        }
-                        placeholder="/assets/kanhaiya_real.jpg"
-                        className="flex-1 px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-purple-300 font-mono text-xs focus:outline-none focus:border-purple-500"
-                      />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[9px] font-mono text-white text-center p-1 rounded-full">
+                          About Photo
+                        </div>
+                      </div>
+
+                      <div className="flex-1 space-y-3 w-full">
+                        <div className="flex items-center gap-3">
+                          <label className="cursor-pointer px-4 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-mono flex items-center gap-2 transition-all">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>{uploading ? 'Uploading...' : 'Upload New Photo'}</span>
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                              disabled={uploading}
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                setUploading(true);
+                                try {
+                                  const res = await uploadAdminFile(file, false);
+                                  setSettings((prev) => ({
+                                    ...prev,
+                                    about_avatar_url: res.fileUrl,
+                                  }));
+                                  showNotice('success', 'About photo uploaded! Remember to click "Save Settings" below.');
+                                } catch (err: unknown) {
+                                  showNotice('error', err instanceof Error ? err.message : 'Photo upload failed');
+                                } finally {
+                                  setUploading(false);
+                                }
+                              }}
+                            />
+                          </label>
+
+                          {settings.about_avatar_url && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSettings((prev) => ({ ...prev, about_avatar_url: '' }));
+                                showNotice('success', 'Reset to default about photo. Remember to save settings!');
+                              }}
+                              className="px-3 py-2 rounded-xl bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/30 text-xs font-mono text-slate-400 hover:text-rose-300 transition-all"
+                            >
+                              Reset to Default
+                            </button>
+                          )}
+                        </div>
+
+                        <div>
+                          <input
+                            type="text"
+                            value={settings.about_avatar_url || ''}
+                            onChange={(e) =>
+                              setSettings({ ...settings, about_avatar_url: e.target.value })
+                            }
+                            placeholder="/uploads/... or https://..."
+                            className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-purple-300 font-mono text-xs focus:outline-none focus:border-purple-500"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

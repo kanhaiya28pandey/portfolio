@@ -19,6 +19,7 @@ interface CertificatesSectionProps {
 }
 
 import { getCourseMeta, getCertificateCategory } from '../utils/certMeta';
+import { resolveAssetUrl } from '../utils/assetUrl';
 export { getCourseMeta, getCertificateCategory };
 
 export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certificates }) => {
@@ -298,7 +299,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
                 {activeCert.thumbnailUrl || isImage(activeCert.credentialUrl) ? (
                   <div className="rounded-xl overflow-hidden border border-white/10 dark:border-white/10 light:border-slate-200 max-h-64 flex items-center justify-center bg-black/40">
                     <img
-                      src={activeCert.thumbnailUrl || activeCert.credentialUrl}
+                      src={resolveAssetUrl(activeCert.thumbnailUrl) || resolveAssetUrl(activeCert.credentialUrl)}
                       alt={activeCert.title}
                       className="w-full h-full object-contain"
                     />
@@ -353,7 +354,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
 
                   {activeCert.credentialUrl && (
                     <a
-                      href={activeCert.credentialUrl}
+                      href={resolveAssetUrl(activeCert.credentialUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold shadow-md transition-all"

@@ -5,6 +5,7 @@ import { X, ExternalLink, Sparkles, Layers, Calendar, Code2 } from 'lucide-react
 import { GithubIcon } from '../common/BrandIcons';
 import { useTheme } from '../../context/ThemeContext';
 import type { Project } from '../../types/portfolio';
+import { resolveAssetUrl } from '../../utils/assetUrl';
 
 interface ProjectDetailModalProps {
   project: Project | null;
@@ -191,8 +192,8 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
 
   // Extract banner / thumbnail
   const getThumbnail = (p: Project): string => {
-    if (p.bannerUrl && p.bannerUrl.trim().length > 0) return p.bannerUrl;
-    if (p.thumbnailUrl && p.thumbnailUrl.trim().length > 0) return p.thumbnailUrl;
+    if (p.bannerUrl && p.bannerUrl.trim().length > 0) return resolveAssetUrl(p.bannerUrl);
+    if (p.thumbnailUrl && p.thumbnailUrl.trim().length > 0) return resolveAssetUrl(p.thumbnailUrl);
     const t = (p.slug || p.title).toLowerCase();
     if (t.includes('resume')) return '/assets/projects/resumeiq.jpg';
     if (t.includes('youtube') || t.includes('yourtube')) return '/assets/projects/youtube_clone.jpg';

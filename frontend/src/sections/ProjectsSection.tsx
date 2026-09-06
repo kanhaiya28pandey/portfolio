@@ -4,6 +4,7 @@ import { GithubIcon } from '../components/common/BrandIcons';
 import { ProjectDetailModal } from '../components/projects/ProjectDetailModal';
 import { useTheme } from '../context/ThemeContext';
 import type { Project } from '../types/portfolio';
+import { resolveAssetUrl } from '../utils/assetUrl';
 
 interface ProjectsSectionProps {
   projects: Project[];
@@ -78,10 +79,10 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
   // Helper for thumbnail image
   const getThumbnail = (project: Project): string => {
     if (project.thumbnailUrl && project.thumbnailUrl.trim().length > 0) {
-      return project.thumbnailUrl;
+      return resolveAssetUrl(project.thumbnailUrl);
     }
     if (project.bannerUrl && project.bannerUrl.trim().length > 0) {
-      return project.bannerUrl;
+      return resolveAssetUrl(project.bannerUrl);
     }
     const t = (project.slug || project.title).toLowerCase();
     if (t.includes('resume')) return '/assets/projects/resumeiq.jpg';

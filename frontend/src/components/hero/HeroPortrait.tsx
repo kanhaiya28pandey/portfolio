@@ -3,6 +3,7 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Code2, Database, Sparkles, Cpu } from 'lucide-react';
 
 import heroAvatar from '../../assets/hero.png';
+import { resolveAssetUrl } from '../../utils/assetUrl';
 
 interface FloatingBadgeProps {
   icon: React.ReactNode;
@@ -119,16 +120,11 @@ export const HeroPortrait: React.FC<HeroPortraitProps> = ({ avatarUrl }) => {
         {/* Full-Card 3D Character Portrait Display */}
         <div className="relative w-full h-full rounded-3xl overflow-hidden group">
           <img
-            src={
-              avatarUrl
-                ? avatarUrl.startsWith('http') || avatarUrl.startsWith('data:')
-                  ? avatarUrl
-                  : avatarUrl.startsWith('/uploads/')
-                  ? `${(import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1').replace(/\/api\/v1\/?$/, '')}${avatarUrl}`
-                  : avatarUrl
-                : heroAvatar
-            }
+            src={resolveAssetUrl(avatarUrl) || heroAvatar}
             alt="Kanhaiya Pandey"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = heroAvatar;
+            }}
             className="w-full h-full object-cover object-top scale-100 group-hover:scale-105 transition-transform duration-700 ease-out"
           />
           {/* Subtle cinematic gradient overlays for depth and text legibility */}

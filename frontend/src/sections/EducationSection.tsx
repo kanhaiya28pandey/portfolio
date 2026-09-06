@@ -16,6 +16,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import type { Education, ExperienceCertificate } from '../types/portfolio';
+import { resolveAssetUrl } from '../utils/assetUrl';
 
 interface EducationSectionProps {
   educations: Education[];
@@ -692,7 +693,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations }
                     </button>
 
                     <a
-                      href={activeModalDoc.doc.fileUrl}
+                      href={resolveAssetUrl(activeModalDoc.doc.fileUrl)}
                       target="_blank"
                       rel="noreferrer"
                       className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-mono font-bold shadow-lg transition-all"
@@ -702,7 +703,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations }
                     </a>
 
                     <a
-                      href={activeModalDoc.doc.fileUrl}
+                      href={resolveAssetUrl(activeModalDoc.doc.fileUrl)}
                       download
                       className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all ${
                         isDark

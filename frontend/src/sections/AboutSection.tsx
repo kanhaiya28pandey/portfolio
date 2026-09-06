@@ -8,6 +8,7 @@ import { fadeInUp, staggerContainer, scaleIn } from '../styles/animations';
 import type { Education } from '../types/portfolio';
 
 import kanhaiyaRealPhoto from '../assets/kanhaiya_real.jpg';
+import { resolveAssetUrl } from '../utils/assetUrl';
 
 interface AboutSectionProps {
   profileData?: {
@@ -77,7 +78,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
               {/* Glassmorphic Inner Circular Frame */}
               <div className="relative w-60 h-60 sm:w-72 sm:h-72 md:w-80 md:h-80 rounded-full p-2 bg-slate-900/80 dark:bg-slate-900/90 light:bg-white/90 backdrop-blur-xl border-2 border-white/20 dark:border-white/20 light:border-slate-300 shadow-[0_0_35px_rgba(59,130,246,0.35)] overflow-hidden flex items-center justify-center group">
                 <img
-                  src={profileData.avatarUrl || kanhaiyaRealPhoto}
+                  src={resolveAssetUrl(profileData.avatarUrl) || kanhaiyaRealPhoto}
                   alt={profileData.name}
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = kanhaiyaRealPhoto;
