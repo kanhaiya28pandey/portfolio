@@ -1,0 +1,249 @@
+@layer base {
+  :root {
+    --bg-main: #060913;
+    --bg-surface: rgba(10, 15, 29, 0.75);
+    --bg-card: rgba(13, 21, 39, 0.65);
+    --border-glass: rgba(59, 130, 246, 0.18);
+    --border-glass-hover: rgba(139, 92, 246, 0.4);
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --accent-blue: #3B82F6;
+    --accent-purple: #8B5CF6;
+    --accent-cyan: #06B6D4;
+    --glow-color: rgba(59, 130, 246, 0.25);
+    --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  .light {
+    --bg-main: #f6f9fe;
+    --bg-surface: rgba(255, 255, 255, 0.92);
+    --bg-card: rgba(255, 255, 255, 0.88);
+    --border-glass: rgba(203, 213, 225, 0.85);
+    --border-glass-hover: rgba(59, 130, 246, 0.6);
+    --text-primary: #0F172A;
+    --text-secondary: #334155;
+    --accent-blue: #2563EB;
+    --accent-purple: #7C3AED;
+    --accent-cyan: #0284C7;
+    --glow-color: rgba(59, 130, 246, 0.18);
+    --card-shadow: 0 8px 30px 0 rgba(31, 38, 135, 0.08);
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: hidden;
+  }
+}
+
+/* Glassmorphic Utility Classes */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-glass-hover);
+}
+
+.glass-panel-interactive {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-interactive:hover {
+  border-color: var(--border-glass-hover);
+  box-shadow: 0 12px 40px var(--glow-color);
+  transform: translateY(-2px);
+}
+
+/* Ambient Radial Glow Gradients */
+.radial-glow-blue {
+  background: radial-gradient(circle at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+}
+
+.radial-glow-purple {
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 9999px;
+  border: 2px solid var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.6);
+}
+
+/* Smooth page-wide animated theme transition */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.65s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
+}
+
+/* ==============================================================================
+   Cinematic View Transitions (Top-Right to Bottom-Left Corner Wave)
+   ============================================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 99999;
+}
+
+/* ==============================================================================
+   Admin Console Isolated Dual Theming Support
+   ============================================================================== */
+.admin-theme-light {
+  color-scheme: light;
+  --bg-main: #edf2fc;
+  --bg-surface: rgba(255, 255, 255, 0.92);
+  --bg-card: rgba(255, 255, 255, 0.88);
+  --border-glass: rgba(203, 213, 225, 0.8);
+  --border-glass-hover: rgba(59, 130, 246, 0.5);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+}
+
+.admin-theme-light input,
+.admin-theme-light select,
+.admin-theme-light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.admin-theme-light input:focus,
+.admin-theme-light select:focus,
+.admin-theme-light textarea:focus {
+  border-color: #3b82f6 !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+.admin-theme-light input::placeholder,
+.admin-theme-light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.admin-theme-light label {
+  color: #334155 !important;
+}
+
+.admin-theme-light .admin-card,
+.admin-theme-light .admin-modal-card {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(203, 213, 225, 0.7) !important;
+}
+
+.admin-theme-light .text-white {
+  color: #0f172a !important;
+}
+
+.admin-theme-light .text-dark-text {
+  color: #1e293b !important;
+}
+
+.admin-theme-light .text-slate-400 {
+  color: #475569 !important;
+}
+
+.admin-theme-light .text-slate-300 {
+  color: #334155 !important;
+}
+
+.admin-theme-light .bg-white\/5,
+.admin-theme-light .bg-white\/10 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+.admin-theme-light .bg-\[\#0c1017\],
+.admin-theme-light .bg-\[\#060913\],
+.admin-theme-light .bg-\[\#07090e\],
+.admin-theme-light .bg-\[\#090d16\],
+.admin-theme-light .bg-\[\#06080e\],
+.admin-theme-light .bg-\[\#0a0f1d\] {
+  background-color: #ffffff !important;
+}
+
+.admin-theme-light .border-white\/5,
+.admin-theme-light .border-white\/10,
+.admin-theme-light .border-white\/20 {
+  border-color: #e2e8f0 !important;
+}
+
+.admin-theme-light tr.hover\:bg-white\/5:hover {
+  background-color: #f8fafc !important;
+}
+
+/* ==============================================================================
+   Admin Console Dark Cyber Controls Support
+   ============================================================================== */
+.admin-theme-dark {
+  color-scheme: dark;
+}
+
+.admin-theme-dark input:not([type="checkbox"]):not([type="radio"]),
+.admin-theme-dark select,
+.admin-theme-dark textarea {
+  background-color: #080d1a !important;
+  color: #f8fafc !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.admin-theme-dark input:not([type="checkbox"]):not([type="radio"]):focus,
+.admin-theme-dark select:focus,
+.admin-theme-dark textarea:focus {
+  border-color: #3b82f6 !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+}
+
+.admin-theme-dark input::placeholder,
+.admin-theme-dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+.admin-theme-dark select option {
+  background-color: #0c1222 !important;
+  color: #f8fafc !important;
+}
+
+
+
+
