@@ -1,0 +1,16 @@
+{
+  "name": "pandey-jee-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kanhaiya Pandey Full Stack Portfolio & Dynamic CMS",
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "dev": "npm --prefix frontend run dev",
+    "lint": "npm --prefix frontend run lint",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "backend:compile": "cd backend && mvnw.cmd compile",
+    "backend:run": "cd backend && mvnw.cmd spring-boot:run",
+    "build:all": "npm --prefix frontend run build && cd backend && mvnw.cmd compile"
+  }
+}
