@@ -37,9 +37,14 @@ public class EmailService {
 
     @Async
     public void sendContactNotification(ContactMessage message) {
-        if (!mailEnabled || mailSender == null || !StringUtils.hasText(mailFrom)) {
-            log.info("Email notification skipped (enabled={}, hasSender={}, hasFrom={}). Message #{} from {} ({}) saved in database.",
-                    mailEnabled, mailSender != null, StringUtils.hasText(mailFrom),
+        String effectiveFrom = StringUtils.hasText(mailFrom) ? mailFrom : recipientEmail;
+        if (!mailEnabled) {
+            log.info("Email notification disabled by configuration (portfolio.mail.enabled=false). Message #{} from {} saved in database.",
+                    message.getId(), message.getEmail());
+            return;
+        }
+        if (mailSender == null) {
+            log.warn("JavaMailSender bean is not active. Message #{} from {} ({}) safely saved in database.",
                     message.getId(), message.getName(), message.getEmail());
             return;
         }
@@ -50,7 +55,7 @@ public class EmailService {
 
             helper.setTo(recipientEmail);
             String fromDisplayName = "Portfolio Alert • " + message.getName();
-            helper.setFrom(mailFrom, fromDisplayName);
+            helper.setFrom(effectiveFrom, fromDisplayName);
             helper.setReplyTo(message.getEmail(), message.getName());
 
             String typeStr = message.getInquiryType() != null ? message.getInquiryType().name() : "GENERAL";
@@ -63,10 +68,14 @@ public class EmailService {
             helper.setText(plainText, htmlText);
 
             mailSender.send(mimeMessage);
-            log.info("Stylish HTML contact notification email sent successfully to {} for message #{} from {}",
+            log.info("Stylish HTML contact notification email dispatched successfully to {} for message #{} from {}",
                     recipientEmail, message.getId(), message.getEmail());
         } catch (Exception e) {
-            log.error("Failed to send contact notification email for message #{}: {}", message.getId(), e.getMessage(), e);
+            log.error("Failed to send contact notification email for message #{} to {}: {}. " +
+                    "Troubleshooting: Ensure Render environment variables include SPRING_MAIL_HOST=smtp.gmail.com, " +
+                    "SPRING_MAIL_PORT=587, SPRING_MAIL_USERNAME=kanhaiya542112@gmail.com, " +
+                    "and SPRING_MAIL_PASSWORD=<16-digit-Google-App-Password>.",
+                    message.getId(), recipientEmail, e.getMessage(), e);
         }
     }
 

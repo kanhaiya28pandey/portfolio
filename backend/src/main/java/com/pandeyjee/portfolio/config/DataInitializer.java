@@ -105,12 +105,42 @@ public class DataInitializer implements CommandLineRunner {
         // 3.2 Initialize & Sync Experience Ecosystem
         syncExperienceEcosystem();
 
-        // 4. Initialize Achievements (Clean zero-footprint; populated dynamically via Admin Panel)
+        // 4. Initialize Achievements
         achievementRepository.findAll().forEach(a -> {
             if ("Projects Built".equals(a.getTitle()) || "Technologies Mastered".equals(a.getTitle()) || "Academic Status".equals(a.getTitle())) {
                 achievementRepository.delete(a);
             }
         });
+
+        if (achievementRepository.count() == 0) {
+            log.info("Bootstrapping milestone achievements for Kanhaiya Pandey...");
+            Achievement a1 = Achievement.builder()
+                    .title("Competitive Programming & DSA Milestone")
+                    .metricValue("350+ Solved")
+                    .description("Solved 150+ DSA questions on LeetCode and 200+ on GeeksforGeeks (GFG). Practicing algorithmic problem solving, time complexity optimization, and core data structures.")
+                    .organization("LeetCode & GeeksforGeeks")
+                    .issueDate("2024 - Present")
+                    .iconKey("flame")
+                    .proofUrl("")
+                    .displayOrder(1)
+                    .status(ContentStatus.PUBLISHED)
+                    .build();
+            achievementRepository.save(a1);
+
+            Achievement a2 = Achievement.builder()
+                    .title("Class Representative (CR) — MCA")
+                    .metricValue("Leadership")
+                    .description("Responsible Class Representative (CR) of MCA - E section in SRM University, KTR Campus. Coordinating academic schedules, technical seminars, and student-faculty communication.")
+                    .organization("SRM University, KTR Campus")
+                    .issueDate("2024 - Present")
+                    .iconKey("crown")
+                    .proofUrl("")
+                    .displayOrder(2)
+                    .status(ContentStatus.PUBLISHED)
+                    .build();
+            achievementRepository.save(a2);
+            log.info("Bootstrapped 2 milestone achievements successfully.");
+        }
 
         // 4.1 Initialize & Sync Education Ecosystem
         syncEducationEcosystem();

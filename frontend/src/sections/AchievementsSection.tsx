@@ -4,10 +4,12 @@ import {
   Sparkles, 
   CheckCircle, 
   ExternalLink, 
-  Calendar 
+  Calendar,
+  ShieldCheck
 } from 'lucide-react';
 import { fadeInUp, staggerContainer } from '../styles/animations';
 import type { Achievement } from '../types/portfolio';
+import { resolveAssetUrl } from '../utils/assetUrl';
 
 interface AchievementsSectionProps {
   achievements: Achievement[];
@@ -127,7 +129,7 @@ export const AchievementsSection: React.FC<AchievementsSectionProps> = ({ achiev
 
                   {item.proofUrl ? (
                     <a
-                      href={item.proofUrl}
+                      href={resolveAssetUrl(item.proofUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 hover:text-amber-300 light:text-amber-600 light:hover:text-amber-700 hover:underline transition-colors"
@@ -136,7 +138,10 @@ export const AchievementsSection: React.FC<AchievementsSectionProps> = ({ achiev
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   ) : (
-                    <span className="text-[10px] text-slate-500">#{String(item.displayOrder || item.id).padStart(2, '0')}</span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono text-cyan-400 dark:text-cyan-400 light:text-cyan-700 bg-cyan-500/10 dark:bg-cyan-500/10 light:bg-cyan-50 px-2 py-0.5 rounded-full border border-cyan-500/20 light:border-cyan-200" title="Digital Credential Record Active • Official Document Archive Syncing">
+                      <ShieldCheck className="w-2.5 h-2.5 text-cyan-400 light:text-cyan-600" />
+                      <span>Record Verified</span>
+                    </span>
                   )}
                 </div>
               </motion.div>

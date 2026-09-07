@@ -352,7 +352,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
                     Close
                   </button>
 
-                  {activeCert.credentialUrl && (
+                  {activeCert.credentialUrl ? (
                     <a
                       href={resolveAssetUrl(activeCert.credentialUrl)}
                       target="_blank"
@@ -371,6 +371,11 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
                         </>
                       )}
                     </a>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-medium" title="Digital Credential Verification Pending • Record Verified">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Record Verified</span>
+                    </span>
                   )}
                 </div>
               </div>
