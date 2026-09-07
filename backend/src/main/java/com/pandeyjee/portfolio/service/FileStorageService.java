@@ -23,6 +23,7 @@ import java.util.UUID;
 public class FileStorageService {
 
     private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
+    public static volatile String lastStorageError = null;
 
     private final Path uploadLocation;
     private final StoredFileRepository storedFileRepository;
@@ -107,8 +108,10 @@ public class FileStorageService {
                     LocalDateTime.now()
             );
             storedFileRepository.save(storedFile);
+            lastStorageError = null;
             log.info("File permanently saved to database: {} ({} bytes)", uniqueFileName, file.getSize());
         } catch (Exception e) {
+            lastStorageError = e.getClass().getSimpleName() + ": " + e.getMessage();
             log.error("Failed to persist file in database: {}", e.getMessage(), e);
         }
 

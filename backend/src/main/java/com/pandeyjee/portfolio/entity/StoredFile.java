@@ -23,9 +23,8 @@ public class StoredFile {
     @Column(name = "file_size", nullable = false)
     private Long fileSize;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
     @Column(name = "file_data", nullable = false)
+    @org.hibernate.annotations.JdbcTypeCode(java.sql.Types.VARBINARY)
     private byte[] fileData;
 
     @Column(name = "created_at", nullable = false, updatable = false)

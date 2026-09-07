@@ -86,6 +86,7 @@ public class PublicPortfolioController {
             "databaseUrl", dbUrl,
             "storedFilesCount", storedFilesCount,
             "sampleStoredFiles", sampleStoredFiles,
+            "lastStorageError", com.pandeyjee.portfolio.service.FileStorageService.lastStorageError != null ? com.pandeyjee.portfolio.service.FileStorageService.lastStorageError : "none",
             "timestamp", java.time.Instant.now().toString()
         ));
     }
