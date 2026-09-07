@@ -9,4 +9,4 @@ Disallow: /admin/
 Disallow: /api/
 
 # Official Sitemap location
-Sitemap: https://techwithkanhaiya.vercel.app/sitemap.xml
+Sitemap: https://portfolio-navy-xi-45.vercel.app/sitemap.xml
