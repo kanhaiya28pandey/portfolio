@@ -65,11 +65,11 @@ export const Navbar: React.FC = () => {
     return items;
   }, [hasAchievements]);
 
-  // Accurate position-based scroll-spy
+  // Accurate bottom-to-top scroll-spy (finds the lowest section whose top has reached the reading line)
   const updateActiveSectionFromPosition = React.useCallback(() => {
     // 1. Check if user is scrolled near bottom of page -> activate Contact
     const isNearBottom =
-      window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80;
+      window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 70;
     if (isNearBottom) {
       const lastItem = navItems[navItems.length - 1];
       if (lastItem) {
@@ -84,19 +84,23 @@ export const Navbar: React.FC = () => {
       return;
     }
 
-    // 3. Scan sections against a comfortable viewport read line (140px from top)
-    const readLine = 140;
-    for (let i = 0; i < navItems.length; i++) {
+    // 3. Scan sections in REVERSE order (from bottom of page up to top).
+    // The lowest section whose top has entered the upper viewport reading threshold (170px) is the active section!
+    // This mathematically guarantees that the active indicator NEVER gets stuck on or jumps to the tab before it!
+    const threshold = 170;
+    for (let i = navItems.length - 1; i >= 0; i--) {
       const sectionId = navItems[i].href.substring(1);
       const el = document.getElementById(sectionId);
       if (el) {
         const rect = el.getBoundingClientRect();
-        if (rect.top <= readLine && rect.bottom > readLine) {
+        if (rect.top <= threshold) {
           setActiveSection(sectionId);
           return;
         }
       }
     }
+
+    setActiveSection(navItems[0]?.href.substring(1) || 'home');
   }, [navItems]);
 
   useEffect(() => {
@@ -107,17 +111,11 @@ export const Navbar: React.FC = () => {
         window.requestAnimationFrame(() => {
           setIsScrolled(window.scrollY > 15);
 
-          // If programmatic smooth scroll is running, keep activeSection locked to the clicked tab
+          // If programmatic smooth scroll is active, keep activeSection locked strictly to the clicked target
           if (isProgrammaticScrollRef.current) {
-            if (scrollEndTimerRef.current) {
-              window.clearTimeout(scrollEndTimerRef.current);
+            if (programmaticTargetRef.current) {
+              setActiveSection(programmaticTargetRef.current);
             }
-            // Once scrolling has completely ceased for 180ms, release the lock
-            scrollEndTimerRef.current = window.setTimeout(() => {
-              isProgrammaticScrollRef.current = false;
-              programmaticTargetRef.current = null;
-              updateActiveSectionFromPosition();
-            }, 180);
             ticking = false;
             return;
           }
@@ -129,7 +127,7 @@ export const Navbar: React.FC = () => {
       }
     };
 
-    // If user manually scrolls with mouse wheel, touch swipe, or keyboard, release programmatic lock immediately
+    // When user manually scrolls with mouse wheel, touch swipe, or keyboard, release programmatic lock immediately
     const handleManualInteraction = () => {
       if (isProgrammaticScrollRef.current) {
         isProgrammaticScrollRef.current = false;
@@ -165,7 +163,7 @@ export const Navbar: React.FC = () => {
     const targetId = href.replace('#', '');
     if (!targetId) return;
 
-    // 1. Immediately highlight the clicked tab (blue indicator flies directly to it and stays there)
+    // 1. Immediately highlight the clicked tab (blue indicator flies directly to it and stays firmly there)
     setActiveSection(targetId);
     programmaticTargetRef.current = targetId;
     isProgrammaticScrollRef.current = true;
@@ -173,11 +171,11 @@ export const Navbar: React.FC = () => {
     if (scrollEndTimerRef.current) {
       window.clearTimeout(scrollEndTimerRef.current);
     }
-    // Safety timeout: release lock after 2000ms max
+    // Release programmatic lock only after full settling duration (2200ms) or on manual user interaction
     scrollEndTimerRef.current = window.setTimeout(() => {
       isProgrammaticScrollRef.current = false;
       programmaticTargetRef.current = null;
-    }, 2000);
+    }, 2200);
 
     // 2. Perform smooth scroll directly to target element once
     const targetEl = document.getElementById(targetId);
@@ -224,7 +222,7 @@ export const Navbar: React.FC = () => {
                   className={`relative px-2.5 xl:px-3.5 py-1 text-[11px] xl:text-xs font-semibold rounded-full transition-colors duration-200 whitespace-nowrap select-none ${
                     isActive
                       ? 'text-white light:text-white font-bold'
-                      : 'text-slate-400 light:text-slate-600 hover:text-white light:hover:text-slate-950'
+                      : 'text-slate-400 light:text-slate-600 hover:text-white light:hover:text-slate-950 hover:bg-white/5 light:hover:bg-slate-200/50'
                   }`}
                 >
                   {isActive && (
