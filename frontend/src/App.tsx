@@ -5,12 +5,26 @@ import { SupportModalProvider } from './context/SupportModalContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
-import { AdminLoginPage } from './pages/admin/AdminLoginPage';
-import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminProtectedRoute } from './components/admin/AdminProtectedRoute';
 
 import { DynamicBackground } from './components/common/DynamicBackground';
 import { trackPortfolioVisit } from './services/api';
+
+// Code-split admin pages so standard visitors don't download admin CMS code
+const AdminLoginPage = React.lazy(() => import('./pages/admin/AdminLoginPage'));
+const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminDashboardPage'));
+
+const AdminLoadingFallback: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center bg-dark-bg text-white">
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative w-12 h-12">
+        <div className="absolute inset-0 rounded-full border-2 border-blue-500/20 animate-ping" />
+        <div className="w-12 h-12 rounded-full border-2 border-transparent border-t-blue-500 border-r-cyan-400 animate-spin" />
+      </div>
+      <p className="text-xs font-mono text-slate-400 tracking-wider">LOADING SECURE PORTAL...</p>
+    </div>
+  </div>
+);
 
 const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   React.useEffect(() => {
@@ -47,17 +61,33 @@ export const App: React.FC = () => {
               }
             />
 
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLoginPage />} />
+            {/* Admin Routes (Lazy Loaded) */}
+            <Route
+              path="/admin/login"
+              element={
+                <React.Suspense fallback={<AdminLoadingFallback />}>
+                  <AdminLoginPage />
+                </React.Suspense>
+              }
+            />
             <Route
               path="/admin/dashboard"
               element={
                 <AdminProtectedRoute>
-                  <AdminDashboardPage />
+                  <React.Suspense fallback={<AdminLoadingFallback />}>
+                    <AdminDashboardPage />
+                  </React.Suspense>
                 </AdminProtectedRoute>
               }
             />
-            <Route path="/admin" element={<AdminLoginPage />} />
+            <Route
+              path="/admin"
+              element={
+                <React.Suspense fallback={<AdminLoadingFallback />}>
+                  <AdminLoginPage />
+                </React.Suspense>
+              }
+            />
 
             {/* Fallback to Home */}
             <Route
