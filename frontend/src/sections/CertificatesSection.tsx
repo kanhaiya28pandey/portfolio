@@ -4,11 +4,11 @@ import {
   Calendar, 
   CheckCircle, 
   X, 
-  Download, 
   FileText, 
   ShieldCheck, 
   Eye, 
   ArrowUpRight, 
+  ExternalLink,
   Sparkles
 } from 'lucide-react';
 import type { Certificate } from '../types/portfolio';
@@ -302,44 +302,17 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
                     />
                   </div>
                 ) : isPdfDocument(activeCert.credentialUrl) ? (
-                  <div className="rounded-xl p-5 bg-gradient-to-br from-blue-950/40 via-indigo-950/30 to-purple-950/40 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-purple-950/40 light:bg-gradient-to-br light:from-blue-50 light:via-indigo-50 light:to-purple-50 border border-blue-500/30 dark:border-blue-500/30 light:border-blue-200 text-center space-y-3.5 shadow-inner">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-500/15 border border-blue-500/30 text-cyan-400 dark:text-cyan-400 light:text-blue-600 mx-auto flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.2)]">
-                      <FileText className="w-7 h-7" />
+                  <div className="rounded-xl p-6 bg-slate-900/50 dark:bg-slate-900/50 light:bg-slate-50 border border-white/10 dark:border-white/10 light:border-slate-200 text-center space-y-2">
+                    <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 dark:text-blue-400 light:text-blue-600 mx-auto flex items-center justify-center">
+                      <FileText className="w-6 h-6" />
                     </div>
-                    <div className="space-y-1">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 dark:text-blue-400 light:text-blue-600 text-[10px] font-mono font-semibold uppercase">
-                        <CheckCircle className="w-3 h-3 text-emerald-400" />
-                        <span>Official PDF Certificate</span>
-                      </div>
-                      <h4 className="text-xs sm:text-sm font-mono font-bold text-slate-100 dark:text-slate-100 light:text-slate-800 line-clamp-2">
-                        {activeCert.title}
+                    <div>
+                      <h4 className="text-xs font-mono font-bold text-slate-200 dark:text-slate-200 light:text-slate-800">
+                        Official PDF Certificate Document
                       </h4>
-                      <p className="text-[11px] font-mono text-slate-400 dark:text-slate-400 light:text-slate-600">
+                      <p className="text-[11px] font-mono text-slate-400 dark:text-slate-400 light:text-slate-600 mt-0.5">
                         Authenticated credential file verified by {activeCert.issuingOrg}
                       </p>
-                    </div>
-
-                    <div className="pt-1 flex flex-wrap items-center justify-center gap-2">
-                      <a
-                        href={resolveAssetUrl(activeCert.credentialUrl)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-md transition-all cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Open Document</span>
-                        <ArrowUpRight className="w-3 h-3" />
-                      </a>
-                      <a
-                        href={resolveAssetUrl(activeCert.credentialUrl)}
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-mono font-bold bg-white/10 hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20 light:bg-slate-200 light:hover:bg-slate-300 text-slate-200 dark:text-slate-200 light:text-slate-700 border border-white/10 dark:border-white/10 light:border-slate-300 transition-all cursor-pointer"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Download</span>
-                      </a>
                     </div>
                   </div>
                 ) : (
@@ -362,12 +335,12 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-white/10 dark:border-white/10 light:border-slate-200 text-xs font-mono">
+              <div className="flex items-center justify-between gap-3 pt-3 border-t border-white/10 dark:border-white/10 light:border-slate-200 text-xs font-mono">
                 <span className="text-slate-400 dark:text-slate-400 light:text-slate-500">
                   Year: {activeCert.issueDate}
                 </span>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setActiveCert(null)}
@@ -377,31 +350,24 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
                   </button>
 
                   {activeCert.credentialUrl ? (
-                    <>
-                      <a
-                        href={resolveAssetUrl(activeCert.credentialUrl)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold shadow-md transition-all cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>View Document</span>
-                      </a>
-
-                      {isPdfDocument(activeCert.credentialUrl) && (
-                        <a
-                          href={resolveAssetUrl(activeCert.credentialUrl)}
-                          download
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20 light:bg-slate-100 light:hover:bg-slate-200 text-slate-200 dark:text-slate-200 light:text-slate-700 border border-white/10 dark:border-white/10 light:border-slate-200 transition-all cursor-pointer"
-                          title="Download raw PDF"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">Download</span>
-                        </a>
+                    <a
+                      href={resolveAssetUrl(activeCert.credentialUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold shadow-md transition-all cursor-pointer"
+                    >
+                      {isPdfDocument(activeCert.credentialUrl) ? (
+                        <>
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Open Certificate</span>
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Open Credential</span>
+                        </>
                       )}
-                    </>
+                    </a>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-medium" title="Digital Credential Verification Pending • Record Verified">
                       <ShieldCheck className="w-3.5 h-3.5" />
