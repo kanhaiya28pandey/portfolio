@@ -69,7 +69,7 @@ export const SkillsUniverseSidebar: React.FC<SkillsUniverseSidebarProps> = ({
       {
         id: 'ALL',
         label: 'All Technologies',
-        count: totalCount || 23,
+        count: totalCount,
         icon: LayoutGrid,
       },
     ];

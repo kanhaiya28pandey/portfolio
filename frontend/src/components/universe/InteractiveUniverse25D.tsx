@@ -277,6 +277,23 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
     return { x: found.x, y: found.y };
   }, [selectedSkill, computedNodes]);
 
+  // Count of nodes matching the current category and search filter
+  const matchingNodesCount = useMemo(() => {
+    return skills.filter((skill) => {
+      const matchesCategory =
+        activeCategory === 'ALL' ||
+        skill.category?.trim().toUpperCase() === activeCategory.toUpperCase();
+      const q = searchQuery.trim().toLowerCase();
+      const matchesSearch =
+        !q ||
+        skill.name.toLowerCase().includes(q) ||
+        skill.category?.toLowerCase().includes(q) ||
+        (skill.description && skill.description.toLowerCase().includes(q)) ||
+        (skill.relatedConcepts && skill.relatedConcepts.some((c) => c.toLowerCase().includes(q)));
+      return matchesCategory && matchesSearch;
+    }).length;
+  }, [skills, activeCategory, searchQuery]);
+
   // Render an individual planetary node
   const renderNode = (item: (typeof computedNodes)[0]) => {
     const { skill, x, y, visualScale, depthOpacity } = item;
@@ -288,41 +305,50 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
     const matchesCategory =
       activeCategory === 'ALL' ||
-      skill.category?.toUpperCase() === activeCategory.toUpperCase();
+      skill.category?.trim().toUpperCase() === activeCategory.toUpperCase();
 
+    const q = searchQuery.trim().toLowerCase();
     const matchesSearch =
-      !searchQuery ||
-      skill.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      skill.category.toLowerCase().includes(searchQuery.toLowerCase());
+      !q ||
+      skill.name.toLowerCase().includes(q) ||
+      skill.category?.toLowerCase().includes(q) ||
+      (skill.description && skill.description.toLowerCase().includes(q)) ||
+      (skill.relatedConcepts && skill.relatedConcepts.some((c) => c.toLowerCase().includes(q)));
 
-    // Inactive nodes remain clearly visible (minimum 0.72 opacity)
+    const isMatch = matchesCategory && matchesSearch;
+
+    // Inactive nodes are clearly dimmed and scaled down to visually match the cards list
     let finalOpacity = depthOpacity;
-    if (!matchesCategory || !matchesSearch) {
-      finalOpacity = 0.45;
+    let nodeScale = visualScale;
+
+    if (!isMatch) {
+      finalOpacity = isDark ? 0.16 : 0.22;
+      nodeScale = visualScale * 0.76;
     } else if (selectedSkill && !isSelected && !isRelated) {
-      finalOpacity = 0.72;
+      finalOpacity = 0.78;
     }
 
     const theme = getCategoryTheme(skill.category);
-    // Persistent tag over Java (as in Pic 1) or when hovered/selected
-    const showPillTag = isSelected || isHovered || skill.name.toLowerCase() === 'java';
+    // Show pill tag when selected or hovered
+    const showPillTag = isSelected || isHovered;
+    const showNamePill = isMatch || isSelected || isHovered;
 
     return (
       <g
         key={skill.id}
-        transform={`translate(${x}, ${y}) scale(${visualScale})`}
+        transform={`translate(${x}, ${y}) scale(${nodeScale})`}
         className="cursor-pointer pointer-events-auto"
         onClick={() => onSelectSkill(skill)}
         onMouseEnter={() => onHoverSkill(skill.id)}
         onMouseLeave={() => onHoverSkill(null)}
         style={{
           opacity: finalOpacity,
-          transition: 'opacity 0.25s ease-out',
+          transition: 'opacity 0.25s ease-out, transform 0.25s ease-out',
         }}
       >
         <g>
           {/* Glowing Aura Ring when Selected / Hovered / Related */}
-          {(isSelected || isHovered || isRelated) && (
+          {(isSelected || isHovered || (isRelated && isMatch)) && (
             <circle
               cx="0"
               cy="0"
@@ -378,7 +404,12 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
             height="34"
             className="pointer-events-none overflow-visible"
           >
-            <div className="w-full h-full flex items-center justify-center">
+            <div
+              className="w-full h-full flex items-center justify-center transition-all duration-300"
+              style={{
+                filter: !isMatch ? 'grayscale(100%) opacity(0.35)' : undefined,
+              }}
+            >
               <TechLogo
                 name={skill.name}
                 iconKey={skill.iconKey}
@@ -387,36 +418,38 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
             </div>
           </foreignObject>
 
-          {/* Name label pill directly under EVERY planet for crystal-clear readability */}
-          <g transform="translate(0, 39)" className="pointer-events-none">
-            <rect
-              x={-(skill.name.length * 3.7 + 7)}
-              y="-9"
-              width={skill.name.length * 7.4 + 14}
-              height="18"
-              rx="9"
-              fill={isSelected ? '#00F0FF' : isHovered ? '#0B1530' : 'rgba(7, 14, 34, 0.92)'}
-              stroke={isSelected ? '#00F0FF' : isHovered ? '#38BDF8' : 'rgba(255, 255, 255, 0.22)'}
-              strokeWidth={isSelected ? '1.5' : '1'}
-              style={{
-                filter: isSelected
-                  ? 'drop-shadow(0 0 10px rgba(0,240,255,0.7))'
-                  : undefined,
-              }}
-            />
-            <text
-              x="0"
-              y="3"
-              textAnchor="middle"
-              className={`font-mono font-bold text-[10px] tracking-wider ${
-                isSelected ? 'fill-slate-950' : 'fill-white'
-              }`}
-            >
-              {skill.name}
-            </text>
-          </g>
+          {/* Name label pill directly under matching planets */}
+          {showNamePill && (
+            <g transform="translate(0, 39)" className="pointer-events-none">
+              <rect
+                x={-(skill.name.length * 3.7 + 7)}
+                y="-9"
+                width={skill.name.length * 7.4 + 14}
+                height="18"
+                rx="9"
+                fill={isSelected ? '#00F0FF' : isHovered ? '#0B1530' : 'rgba(7, 14, 34, 0.92)'}
+                stroke={isSelected ? '#00F0FF' : isHovered ? '#38BDF8' : 'rgba(255, 255, 255, 0.22)'}
+                strokeWidth={isSelected ? '1.5' : '1'}
+                style={{
+                  filter: isSelected
+                    ? 'drop-shadow(0 0 10px rgba(0,240,255,0.7))'
+                    : undefined,
+                }}
+              />
+              <text
+                x="0"
+                y="3"
+                textAnchor="middle"
+                className={`font-mono font-bold text-[10px] tracking-wider ${
+                  isSelected ? 'fill-slate-950' : 'fill-white'
+                }`}
+              >
+                {skill.name}
+              </text>
+            </g>
+          )}
 
-          {/* Top Pill Tag on Java or when Selected */}
+          {/* Top Pill Tag on Selected or Hovered */}
           {showPillTag && (
             <g transform="translate(0, -42)" className="pointer-events-none">
               <rect
@@ -826,7 +859,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
       {/* 3. Bottom Minimal Controls Bar (Responsive on all screen sizes, No Zoom) */}
       <div className="absolute bottom-3.5 inset-x-0 flex items-center justify-between px-3 sm:px-6 pointer-events-none z-30 gap-2">
-        {/* Instruction pill */}
+        {/* Instruction and live count pill */}
         <div
           className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 rounded-full text-[10px] sm:text-[11px] font-mono shadow-lg backdrop-blur-md transition-colors ${
             isDark
@@ -835,8 +868,20 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
           }`}
         >
           <span className="w-2.5 h-3.5 border border-cyan-500 rounded-sm inline-block relative after:content-[''] after:w-0.5 after:h-1 after:bg-cyan-500 after:absolute after:top-0.5 after:left-1/2 after:-translate-x-1/2" />
-          <span className="hidden sm:inline">Drag to rotate • Click planet to inspect</span>
-          <span className="sm:hidden">Tap planet to inspect</span>
+          <span>
+            {activeCategory === 'ALL' && !searchQuery ? (
+              <>
+                <strong className="text-cyan-400 font-bold">{skills.length}</strong> Technologies in Orbit
+              </>
+            ) : (
+              <>
+                <strong className="text-cyan-400 font-bold">{matchingNodesCount}</strong> of {skills.length} in Orbit
+              </>
+            )}
+            {' • '}
+            <span className="hidden sm:inline">Drag to rotate • Click planet to inspect</span>
+            <span className="sm:hidden">Tap planet</span>
+          </span>
         </div>
 
         {/* Rotate and Reset Controls */}

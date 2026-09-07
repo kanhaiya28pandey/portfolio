@@ -103,9 +103,33 @@ export const SkillsUniverseSection: React.FC<SkillsUniverseSectionProps> = ({ sk
     return list;
   }, [skills, activeCategory, searchQuery, sortBy]);
 
+  // Active domains with > 0 published skills
+  const activeDomainsCount = useMemo(() => {
+    return Object.values(categoryCounts).filter((c) => c > 0).length;
+  }, [categoryCounts]);
+
+  const activeCategoryLabel = useMemo(() => {
+    if (activeCategory === 'ALL') return 'All';
+    const meta: Record<string, string> = {
+      CORE: 'Core',
+      FRONTEND: 'Frontend',
+      BACKEND: 'Backend',
+      DATABASE: 'Database',
+      TOOLS: 'Tools',
+    };
+    return meta[activeCategory.toUpperCase()] || activeCategory;
+  }, [activeCategory]);
+
   // Two-way interaction: selecting skill
   const handleSelectSkill = (skill: Skill, shouldScroll: boolean = false) => {
     setSelectedSkill(skill);
+
+    // If the selected skill belongs to a different category than current filter,
+    // automatically sync activeCategory so the cards directory immediately shows it!
+    const skillCategory = skill.category?.trim().toUpperCase() || 'CORE';
+    if (activeCategory !== 'ALL' && activeCategory.toUpperCase() !== skillCategory) {
+      setActiveCategory(skillCategory);
+    }
 
     if (window.innerWidth < 1024) {
       setModalSkill(skill);
@@ -205,19 +229,19 @@ export const SkillsUniverseSection: React.FC<SkillsUniverseSectionProps> = ({ sk
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-purple-500" />
               <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {skills.length || 23}
+                {skills.length}
               </span>
               <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>
-                Technologies
+                Total Technologies
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <Code className="w-4 h-4 text-cyan-500" />
               <span className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {Object.keys(categoryCounts).length}
+                {activeDomainsCount}
               </span>
-              <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>Domains</span>
+              <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>Active Domains</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -244,7 +268,7 @@ export const SkillsUniverseSection: React.FC<SkillsUniverseSectionProps> = ({ sk
               searchQuery={searchQuery}
               onSearchChange={(q) => setSearchQuery(q)}
               categoryCounts={categoryCounts}
-              totalCount={skills.length || 23}
+              totalCount={skills.length}
               searchInputRef={searchInputRef}
               className="h-full"
             />
@@ -286,14 +310,45 @@ export const SkillsUniverseSection: React.FC<SkillsUniverseSectionProps> = ({ sk
         >
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             {/* Left Title & Subtitle */}
-            <div className="text-left space-y-0.5">
-              <h3
-                className={`text-lg sm:text-xl font-bold font-sans ${
-                  isDark ? 'text-white' : 'text-slate-900'
-                }`}
-              >
-                All Technologies ({filteredSkills.length})
-              </h3>
+            <div className="text-left space-y-1">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h3
+                  className={`text-lg sm:text-xl font-bold font-sans ${
+                    isDark ? 'text-white' : 'text-slate-900'
+                  }`}
+                >
+                  {activeCategory === 'ALL' && !searchQuery
+                    ? 'All Technologies'
+                    : searchQuery
+                    ? 'Search Results'
+                    : `${activeCategoryLabel} Technologies`}
+                </h3>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold border transition-colors ${
+                    isDark
+                      ? 'bg-blue-950/60 border-blue-500/30 text-cyan-300'
+                      : 'bg-blue-50 border-blue-200 text-blue-700'
+                  }`}
+                >
+                  {filteredSkills.length} {filteredSkills.length === 1 ? 'card' : 'cards'}
+                  {filteredSkills.length !== skills.length && ` (of ${skills.length} total)`}
+                </span>
+
+                {(activeCategory !== 'ALL' || searchQuery) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveCategory('ALL');
+                      setSearchQuery('');
+                    }}
+                    className={`text-xs font-mono underline cursor-pointer transition-colors ${
+                      isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                    }`}
+                  >
+                    Reset filter
+                  </button>
+                )}
+              </div>
               <p
                 className={`text-xs font-sans ${
                   isDark ? 'text-slate-400' : 'text-slate-600'
