@@ -94,21 +94,25 @@
   background: rgba(139, 92, 246, 0.6);
 }
 
-/* Smooth page-wide animated theme transition (targeted containers to prevent mobile frame drop) */
+/* Smooth page-wide animated theme transition (fallback for browsers without View Transitions) */
 html.theme-transitioning,
 html.theme-transitioning body,
 html.theme-transitioning #root,
 html.theme-transitioning header,
 html.theme-transitioning .glass-panel {
-  transition: background-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              color 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition: background-color 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.7s cubic-bezier(0.4, 0, 0.2, 1) !important;
   transition-delay: 0s !important;
 }
 
 /* ==============================================================================
-   Cinematic View Transitions (Top-Right to Bottom-Left Corner Wave)
+   Cinematic View Transitions (Smooth Corner-to-Corner Circular Wave)
    ============================================================================== */
+::view-transition-group(root) {
+  animation-duration: 0.75s;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

@@ -29,8 +29,9 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasAchievements, setHasAchievements] = useState(false);
 
-  const isClickScrollingRef = React.useRef(false);
-  const clickScrollTimeoutRef = React.useRef<number | null>(null);
+  const isProgrammaticScrollRef = React.useRef(false);
+  const programmaticTargetRef = React.useRef<string | null>(null);
+  const scrollEndTimerRef = React.useRef<number | null>(null);
 
   useEffect(() => {
     fetchPortfolioOverview().then((overview) => {
@@ -64,6 +65,40 @@ export const Navbar: React.FC = () => {
     return items;
   }, [hasAchievements]);
 
+  // Accurate position-based scroll-spy
+  const updateActiveSectionFromPosition = React.useCallback(() => {
+    // 1. Check if user is scrolled near bottom of page -> activate Contact
+    const isNearBottom =
+      window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80;
+    if (isNearBottom) {
+      const lastItem = navItems[navItems.length - 1];
+      if (lastItem) {
+        setActiveSection(lastItem.href.substring(1));
+        return;
+      }
+    }
+
+    // 2. Check if at the very top of page -> activate Home
+    if (window.scrollY < 80) {
+      setActiveSection(navItems[0]?.href.substring(1) || 'home');
+      return;
+    }
+
+    // 3. Scan sections against a comfortable viewport read line (140px from top)
+    const readLine = 140;
+    for (let i = 0; i < navItems.length; i++) {
+      const sectionId = navItems[i].href.substring(1);
+      const el = document.getElementById(sectionId);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= readLine && rect.bottom > readLine) {
+          setActiveSection(sectionId);
+          return;
+        }
+      }
+    }
+  }, [navItems]);
+
   useEffect(() => {
     let ticking = false;
 
@@ -72,102 +107,88 @@ export const Navbar: React.FC = () => {
         window.requestAnimationFrame(() => {
           setIsScrolled(window.scrollY > 15);
 
-          // If the user recently clicked a nav tab, do not let scroll-spy override the active tab
-          if (isClickScrollingRef.current) {
+          // If programmatic smooth scroll is running, keep activeSection locked to the clicked tab
+          if (isProgrammaticScrollRef.current) {
+            if (scrollEndTimerRef.current) {
+              window.clearTimeout(scrollEndTimerRef.current);
+            }
+            // Once scrolling has completely ceased for 180ms, release the lock
+            scrollEndTimerRef.current = window.setTimeout(() => {
+              isProgrammaticScrollRef.current = false;
+              programmaticTargetRef.current = null;
+              updateActiveSectionFromPosition();
+            }, 180);
             ticking = false;
             return;
           }
 
-          // Check if scrolled near the bottom of the page -> activate Contact
-          const isNearBottom =
-            window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60;
-          if (isNearBottom) {
-            const lastItem = navItems[navItems.length - 1];
-            if (lastItem) {
-              setActiveSection(lastItem.href.substring(1));
-              ticking = false;
-              return;
-            }
-          }
-
-          // Accurate scroll spy using true viewport bounding rects
-          const navOffset = 120; // navbar height + buffer
-          let currentActive = navItems[0]?.href.substring(1) || 'home';
-
-          for (let i = 0; i < navItems.length; i++) {
-            const section = navItems[i].href.substring(1);
-            const el = document.getElementById(section);
-            if (el) {
-              const rect = el.getBoundingClientRect();
-              if (rect.top <= navOffset && rect.bottom > navOffset) {
-                currentActive = section;
-                break;
-              } else if (rect.top <= navOffset) {
-                currentActive = section;
-              }
-            }
-          }
-
-          setActiveSection(currentActive);
+          updateActiveSectionFromPosition();
           ticking = false;
         });
         ticking = true;
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (clickScrollTimeoutRef.current) {
-        window.clearTimeout(clickScrollTimeoutRef.current);
+    // If user manually scrolls with mouse wheel, touch swipe, or keyboard, release programmatic lock immediately
+    const handleManualInteraction = () => {
+      if (isProgrammaticScrollRef.current) {
+        isProgrammaticScrollRef.current = false;
+        programmaticTargetRef.current = null;
+        if (scrollEndTimerRef.current) {
+          window.clearTimeout(scrollEndTimerRef.current);
+        }
       }
     };
-  }, [navItems]);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('wheel', handleManualInteraction, { passive: true });
+    window.addEventListener('touchmove', handleManualInteraction, { passive: true });
+    window.addEventListener('keydown', handleManualInteraction, { passive: true });
+
+    // Initial position evaluation
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('wheel', handleManualInteraction);
+      window.removeEventListener('touchmove', handleManualInteraction);
+      window.removeEventListener('keydown', handleManualInteraction);
+      if (scrollEndTimerRef.current) {
+        window.clearTimeout(scrollEndTimerRef.current);
+      }
+    };
+  }, [updateActiveSectionFromPosition]);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     setMobileMenuOpen(false);
     const targetId = href.replace('#', '');
+    if (!targetId) return;
 
-    // 1. Instantly update activeSection so that the animated blue box flies smoothly to the clicked tab!
-    if (targetId) {
-      setActiveSection(targetId);
+    // 1. Immediately highlight the clicked tab (blue indicator flies directly to it and stays there)
+    setActiveSection(targetId);
+    programmaticTargetRef.current = targetId;
+    isProgrammaticScrollRef.current = true;
+
+    if (scrollEndTimerRef.current) {
+      window.clearTimeout(scrollEndTimerRef.current);
     }
+    // Safety timeout: release lock after 2000ms max
+    scrollEndTimerRef.current = window.setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+      programmaticTargetRef.current = null;
+    }, 2000);
 
-    // 2. Lock scroll-spy during smooth scroll so intermediate sections don't pull the blue box back and forth
-    isClickScrollingRef.current = true;
-    if (clickScrollTimeoutRef.current) {
-      window.clearTimeout(clickScrollTimeoutRef.current);
+    // 2. Perform smooth scroll directly to target element once
+    const targetEl = document.getElementById(targetId);
+    if (targetEl) {
+      targetEl.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    } else {
+      window.location.hash = href;
     }
-    clickScrollTimeoutRef.current = window.setTimeout(() => {
-      isClickScrollingRef.current = false;
-    }, 900);
-
-    // 3. Instantly wake up ALL sections so dynamic heights stabilize completely
-    window.dispatchEvent(new CustomEvent('portfolio-mount-all'));
-    if (targetId) {
-      window.dispatchEvent(new CustomEvent('portfolio-nav-target', { detail: targetId }));
-    }
-
-    const scrollToTarget = () => {
-      const targetEl = document.getElementById(targetId);
-      if (targetEl) {
-        targetEl.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-      } else {
-        window.location.hash = href;
-      }
-    };
-
-    // First pass immediately
-    scrollToTarget();
-
-    // Secondary settling passes to ensure tracking if DOM heights shifted during mount
-    setTimeout(scrollToTarget, 80);
-    setTimeout(scrollToTarget, 240);
   };
 
   return (

@@ -2,6 +2,29 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('kp_portfolio_theme');
+          if (saved === 'light') {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+          } else {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+            document.documentElement.style.colorScheme = 'dark';
+            if (!saved) {
+              localStorage.setItem('kp_portfolio_theme', 'dark');
+            }
+          }
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+          document.documentElement.style.colorScheme = 'dark';
+        }
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260905" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=20260905" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=20260905" />

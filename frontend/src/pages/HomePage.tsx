@@ -1,40 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { HeroSection } from '../sections/HeroSection';
-import { LazySection } from '../components/common/LazySection';
 import { fetchPortfolioOverview, DEFAULT_PORTFOLIO_DATA } from '../services/api';
 import type { PortfolioOverview } from '../types/portfolio';
 
-// Progressive code-split lazy imports for below-the-fold heavy sections
-const ExploreSection = React.lazy(() =>
-  import('../sections/ExploreSection').then((m) => ({ default: m.ExploreSection }))
-);
-const AboutSection = React.lazy(() =>
-  import('../sections/AboutSection').then((m) => ({ default: m.AboutSection }))
-);
-const SkillsUniverseSection = React.lazy(() =>
-  import('../sections/SkillsUniverseSection').then((m) => ({ default: m.SkillsUniverseSection }))
-);
-const ProjectsSection = React.lazy(() =>
-  import('../sections/ProjectsSection').then((m) => ({ default: m.ProjectsSection }))
-);
-const ExperienceSection = React.lazy(() =>
-  import('../sections/ExperienceSection').then((m) => ({ default: m.ExperienceSection }))
-);
-const EducationSection = React.lazy(() =>
-  import('../sections/EducationSection').then((m) => ({ default: m.EducationSection }))
-);
-const CertificatesSection = React.lazy(() =>
-  import('../sections/CertificatesSection').then((m) => ({ default: m.CertificatesSection }))
-);
-const AchievementsSection = React.lazy(() =>
-  import('../sections/AchievementsSection').then((m) => ({ default: m.AchievementsSection }))
-);
-const WorkWithMeSection = React.lazy(() =>
-  import('../sections/WorkWithMeSection').then((m) => ({ default: m.WorkWithMeSection }))
-);
-const ContactSection = React.lazy(() =>
-  import('../sections/ContactSection').then((m) => ({ default: m.ContactSection }))
-);
+import { ExploreSection } from '../sections/ExploreSection';
+import { AboutSection } from '../sections/AboutSection';
+import { SkillsUniverseSection } from '../sections/SkillsUniverseSection';
+import { ProjectsSection } from '../sections/ProjectsSection';
+import { ExperienceSection } from '../sections/ExperienceSection';
+import { EducationSection } from '../sections/EducationSection';
+import { CertificatesSection } from '../sections/CertificatesSection';
+import { AchievementsSection } from '../sections/AchievementsSection';
+import { WorkWithMeSection } from '../sections/WorkWithMeSection';
+import { ContactSection } from '../sections/ContactSection';
 
 export const HomePage: React.FC = () => {
   const [data, setData] = useState<PortfolioOverview>(DEFAULT_PORTFOLIO_DATA);
@@ -91,79 +69,59 @@ export const HomePage: React.FC = () => {
       />
 
       {/* 2. Explore / Developer Universe Introduction */}
-      <LazySection fallbackTitle="Engineering Focus" minHeight="min-h-[260px]">
-        <ExploreSection />
-      </LazySection>
+      <ExploreSection />
 
       {/* 3. About Me Section */}
-      <LazySection sectionKey="about" fallbackTitle="About Profile" minHeight="min-h-[420px]">
-        <AboutSection
-          profileData={{
-            name: data.profile.fullName,
-            status: data.profile.title,
-            bio: data.profile.bio,
-            aboutText: data.settings?.about_text || data.profile.aboutMarkdown,
-            avatarUrl: data.settings?.about_avatar_url || data.profile.avatarUrl,
-            location: data.settings?.about_location || data.profile.location,
-            streamBadge: data.settings?.about_stream_badge || 'Software Engineer',
-            phone: data.settings?.phone_number || data.profile.phone || '+91 9801573326',
-            whatsapp: data.settings?.whatsapp_number || '+91 9801573326',
-          }}
-          educations={data.educations}
-        />
-      </LazySection>
+      <AboutSection
+        profileData={{
+          name: data.profile.fullName,
+          status: data.profile.title,
+          bio: data.profile.bio,
+          aboutText: data.settings?.about_text || data.profile.aboutMarkdown,
+          avatarUrl: data.settings?.about_avatar_url || data.profile.avatarUrl,
+          location: data.settings?.about_location || data.profile.location,
+          streamBadge: data.settings?.about_stream_badge || 'Software Engineer',
+          phone: data.settings?.phone_number || data.profile.phone || '+91 9801573326',
+          whatsapp: data.settings?.whatsapp_number || '+91 9801573326',
+        }}
+        educations={data.educations}
+      />
 
       {/* 4. Skills Universe Section (3D Celestial Orbit) */}
-      <LazySection sectionKey="skills" fallbackTitle="Skills Universe (3D Orbit)" minHeight="min-h-[500px]">
-        <SkillsUniverseSection skills={data.skills} />
-      </LazySection>
+      <SkillsUniverseSection skills={data.skills} />
 
       {/* 5. Projects Section */}
-      <LazySection sectionKey="projects" fallbackTitle="Featured Projects" minHeight="min-h-[500px]">
-        <ProjectsSection projects={data.projects} />
-      </LazySection>
+      <ProjectsSection projects={data.projects} />
 
       {/* 6. Experience Section */}
       {data.experiences && data.experiences.length > 0 && (
-        <LazySection sectionKey="experience" fallbackTitle="Career Milestones" minHeight="min-h-[400px]">
-          <ExperienceSection experiences={data.experiences} />
-        </LazySection>
+        <ExperienceSection experiences={data.experiences} />
       )}
 
       {/* 7. Education Section */}
       {data.educations && data.educations.length > 0 && (
-        <LazySection sectionKey="education" fallbackTitle="Academic Credentials" minHeight="min-h-[420px]">
-          <EducationSection educations={data.educations} />
-        </LazySection>
+        <EducationSection educations={data.educations} />
       )}
 
       {/* 8. Certificates Section */}
       {data.certificates && data.certificates.length > 0 && (
-        <LazySection sectionKey="certificates" fallbackTitle="Verified Certifications" minHeight="min-h-[420px]">
-          <CertificatesSection certificates={data.certificates} />
-        </LazySection>
+        <CertificatesSection certificates={data.certificates} />
       )}
 
       {/* 9. Achievements & Highlights Section */}
       {data.achievements && data.achievements.length > 0 && (
-        <LazySection sectionKey="achievements" fallbackTitle="Honors & Achievements" minHeight="min-h-[350px]">
-          <AchievementsSection achievements={data.achievements} />
-        </LazySection>
+        <AchievementsSection achievements={data.achievements} />
       )}
 
       {/* 10. Work With Me / Opportunities Section */}
-      <LazySection fallbackTitle="Collaboration Protocols" minHeight="min-h-[280px]">
-        <WorkWithMeSection />
-      </LazySection>
+      <WorkWithMeSection />
 
       {/* 11. Contact Section */}
-      <LazySection sectionKey="contact" fallbackTitle="Direct Transmission Channels" minHeight="min-h-[480px]">
-        <ContactSection
-          profile={data.profile}
-          settings={data.settings}
-          socialLinks={socialLinksConfig}
-        />
-      </LazySection>
+      <ContactSection
+        profile={data.profile}
+        settings={data.settings}
+        socialLinks={socialLinksConfig}
+      />
     </div>
   );
 };
