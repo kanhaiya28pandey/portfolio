@@ -3,7 +3,7 @@ import { Menu, X, Heart, Send } from 'lucide-react';
 import { ThemeToggle } from '../common/ThemeToggle';
 import { BrandLogo3D } from '../common/BrandLogo3D';
 import { FuturisticButton } from '../common/FuturisticButton';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useSupportModal } from '../../context/SupportModalContext';
 import { fetchPortfolioOverview } from '../../services/api';
 
@@ -28,6 +28,9 @@ export const Navbar: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasAchievements, setHasAchievements] = useState(false);
+
+  const isClickScrollingRef = React.useRef(false);
+  const clickScrollTimeoutRef = React.useRef<number | null>(null);
 
   useEffect(() => {
     fetchPortfolioOverview().then((overview) => {
@@ -69,19 +72,43 @@ export const Navbar: React.FC = () => {
         window.requestAnimationFrame(() => {
           setIsScrolled(window.scrollY > 15);
 
-          // Scroll Spy logic (throttled to RAF)
-          const scrollPosition = window.scrollY + 200;
-          for (let i = navItems.length - 1; i >= 0; i--) {
+          // If the user recently clicked a nav tab, do not let scroll-spy override the active tab
+          if (isClickScrollingRef.current) {
+            ticking = false;
+            return;
+          }
+
+          // Check if scrolled near the bottom of the page -> activate Contact
+          const isNearBottom =
+            window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 60;
+          if (isNearBottom) {
+            const lastItem = navItems[navItems.length - 1];
+            if (lastItem) {
+              setActiveSection(lastItem.href.substring(1));
+              ticking = false;
+              return;
+            }
+          }
+
+          // Accurate scroll spy using true viewport bounding rects
+          const navOffset = 120; // navbar height + buffer
+          let currentActive = navItems[0]?.href.substring(1) || 'home';
+
+          for (let i = 0; i < navItems.length; i++) {
             const section = navItems[i].href.substring(1);
             const el = document.getElementById(section);
             if (el) {
-              const top = el.offsetTop;
-              if (scrollPosition >= top) {
-                setActiveSection(section);
+              const rect = el.getBoundingClientRect();
+              if (rect.top <= navOffset && rect.bottom > navOffset) {
+                currentActive = section;
                 break;
+              } else if (rect.top <= navOffset) {
+                currentActive = section;
               }
             }
           }
+
+          setActiveSection(currentActive);
           ticking = false;
         });
         ticking = true;
@@ -90,15 +117,34 @@ export const Navbar: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (clickScrollTimeoutRef.current) {
+        window.clearTimeout(clickScrollTimeoutRef.current);
+      }
+    };
   }, [navItems]);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     setMobileMenuOpen(false);
     const targetId = href.replace('#', '');
-    
-    // 1. Instantly wake up ALL sections so dynamic heights stabilize completely
+
+    // 1. Instantly update activeSection so that the animated blue box flies smoothly to the clicked tab!
+    if (targetId) {
+      setActiveSection(targetId);
+    }
+
+    // 2. Lock scroll-spy during smooth scroll so intermediate sections don't pull the blue box back and forth
+    isClickScrollingRef.current = true;
+    if (clickScrollTimeoutRef.current) {
+      window.clearTimeout(clickScrollTimeoutRef.current);
+    }
+    clickScrollTimeoutRef.current = window.setTimeout(() => {
+      isClickScrollingRef.current = false;
+    }, 900);
+
+    // 3. Instantly wake up ALL sections so dynamic heights stabilize completely
     window.dispatchEvent(new CustomEvent('portfolio-mount-all'));
     if (targetId) {
       window.dispatchEvent(new CustomEvent('portfolio-nav-target', { detail: targetId }));
@@ -145,32 +191,34 @@ export const Navbar: React.FC = () => {
         </a>
 
         {/* Center: Desktop Navigation Links (Floating Glass Capsule) */}
-        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 px-2.5 xl:px-3 py-1.5 rounded-full bg-[#0c1322]/80 light:bg-slate-100/90 border border-white/10 light:border-slate-300/80 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.25)] light:shadow-sm flex-shrink-0">
-          {navItems.map((item) => {
-            const isActive = activeSection === item.href.substring(1);
-            return (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={(e) => handleNavClick(e, item.href)}
-                className={`relative px-2.5 xl:px-3.5 py-1 text-[11px] xl:text-xs font-semibold rounded-full transition-all duration-300 whitespace-nowrap ${
-                  isActive
-                    ? 'text-white light:text-white font-bold'
-                    : 'text-slate-400 light:text-slate-600 hover:text-white light:hover:text-slate-950'
-                }`}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeNavIndicator"
-                    className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-[0_0_16px_rgba(59,130,246,0.6)] -z-10"
-                    transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-                  />
-                )}
-                {item.label}
-              </a>
-            );
-          })}
-        </nav>
+        <LayoutGroup id="desktop-nav-pills">
+          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 px-2.5 xl:px-3 py-1.5 rounded-full bg-[#0c1322]/80 light:bg-slate-100/90 border border-white/10 light:border-slate-300/80 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.25)] light:shadow-sm flex-shrink-0">
+            {navItems.map((item) => {
+              const isActive = activeSection === item.href.substring(1);
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, item.href)}
+                  className={`relative px-2.5 xl:px-3.5 py-1 text-[11px] xl:text-xs font-semibold rounded-full transition-colors duration-200 whitespace-nowrap select-none ${
+                    isActive
+                      ? 'text-white light:text-white font-bold'
+                      : 'text-slate-400 light:text-slate-600 hover:text-white light:hover:text-slate-950'
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeNavIndicator"
+                      className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-full shadow-[0_0_18px_rgba(59,130,246,0.65)] -z-10"
+                      transition={{ type: 'spring', stiffness: 420, damping: 30 }}
+                    />
+                  )}
+                  {item.label}
+                </a>
+              );
+            })}
+          </nav>
+        </LayoutGroup>
 
         {/* Right: Actions (Support Me + Theme Toggle + Let's Connect) for Large Screens */}
         <div className="hidden lg:flex items-center gap-2 xl:gap-2.5 flex-shrink-0 flex-nowrap">
