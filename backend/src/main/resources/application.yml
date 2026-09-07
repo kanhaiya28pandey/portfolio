@@ -39,6 +39,9 @@ spring:
           starttls:
             enable: true
             required: true
+          ssl:
+            trust: "*"
+            protocols: TLSv1.2 TLSv1.3
           connectiontimeout: 7000
           timeout: 7000
           writetimeout: 7000
@@ -57,5 +60,8 @@ portfolio:
   mail:
     enabled: ${MAIL_ENABLED:true}
     recipient: ${MAIL_RECIPIENT:kanhaiya542112@gmail.com}
+    resend-api-key: ${RESEND_API_KEY:}
+    web3forms-key: ${WEB3FORMS_ACCESS_KEY:}
+    brevo-api-key: ${BREVO_API_KEY:}
   storage:
     upload-dir: ${UPLOAD_DIR:./uploads}

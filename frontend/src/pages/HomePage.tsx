@@ -96,7 +96,7 @@ export const HomePage: React.FC = () => {
       </LazySection>
 
       {/* 3. About Me Section */}
-      <LazySection id="about" fallbackTitle="About Profile" minHeight="min-h-[420px]">
+      <LazySection sectionKey="about" fallbackTitle="About Profile" minHeight="min-h-[420px]">
         <AboutSection
           profileData={{
             name: data.profile.fullName,
@@ -114,39 +114,39 @@ export const HomePage: React.FC = () => {
       </LazySection>
 
       {/* 4. Skills Universe Section (3D Celestial Orbit) */}
-      <LazySection id="skills" fallbackTitle="Skills Universe (3D Orbit)" minHeight="min-h-[500px]">
+      <LazySection sectionKey="skills" fallbackTitle="Skills Universe (3D Orbit)" minHeight="min-h-[500px]">
         <SkillsUniverseSection skills={data.skills} />
       </LazySection>
 
       {/* 5. Projects Section */}
-      <LazySection id="projects" fallbackTitle="Featured Projects" minHeight="min-h-[500px]">
+      <LazySection sectionKey="projects" fallbackTitle="Featured Projects" minHeight="min-h-[500px]">
         <ProjectsSection projects={data.projects} />
       </LazySection>
 
       {/* 6. Experience Section */}
       {data.experiences && data.experiences.length > 0 && (
-        <LazySection id="experience" fallbackTitle="Career Milestones" minHeight="min-h-[400px]">
+        <LazySection sectionKey="experience" fallbackTitle="Career Milestones" minHeight="min-h-[400px]">
           <ExperienceSection experiences={data.experiences} />
         </LazySection>
       )}
 
       {/* 7. Education Section */}
       {data.educations && data.educations.length > 0 && (
-        <LazySection id="education" fallbackTitle="Academic Credentials" minHeight="min-h-[420px]">
+        <LazySection sectionKey="education" fallbackTitle="Academic Credentials" minHeight="min-h-[420px]">
           <EducationSection educations={data.educations} />
         </LazySection>
       )}
 
       {/* 8. Certificates Section */}
       {data.certificates && data.certificates.length > 0 && (
-        <LazySection id="certificates" fallbackTitle="Verified Certifications" minHeight="min-h-[420px]">
+        <LazySection sectionKey="certificates" fallbackTitle="Verified Certifications" minHeight="min-h-[420px]">
           <CertificatesSection certificates={data.certificates} />
         </LazySection>
       )}
 
       {/* 9. Achievements & Highlights Section */}
       {data.achievements && data.achievements.length > 0 && (
-        <LazySection id="achievements" fallbackTitle="Honors & Achievements" minHeight="min-h-[350px]">
+        <LazySection sectionKey="achievements" fallbackTitle="Honors & Achievements" minHeight="min-h-[350px]">
           <AchievementsSection achievements={data.achievements} />
         </LazySection>
       )}
@@ -157,7 +157,7 @@ export const HomePage: React.FC = () => {
       </LazySection>
 
       {/* 11. Contact Section */}
-      <LazySection id="contact" fallbackTitle="Direct Transmission Channels" minHeight="min-h-[480px]">
+      <LazySection sectionKey="contact" fallbackTitle="Direct Transmission Channels" minHeight="min-h-[480px]">
         <ContactSection
           profile={data.profile}
           settings={data.settings}

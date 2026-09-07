@@ -138,7 +138,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
     <section
       id="projects"
       aria-label="Featured Projects Section"
-      className="relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text"
+      className="scroll-mt-20 sm:scroll-mt-24 relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text"
     >
       {/* Ambient background glows matching design system */}
       <div

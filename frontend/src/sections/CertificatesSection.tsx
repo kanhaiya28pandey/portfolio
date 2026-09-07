@@ -73,7 +73,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
   }, [certificates, selectedFilter]);
 
   return (
-    <section id="certificates" className="relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text">
+    <section id="certificates" className="scroll-mt-20 sm:scroll-mt-24 relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text">
       {/* Seamless Ambient Backlight Spheres */}
       <div
         className="absolute top-1/4 left-1/4 w-[420px] h-[420px] rounded-full pointer-events-none"

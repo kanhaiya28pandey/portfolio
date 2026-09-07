@@ -26,16 +26,19 @@ public class AdminController {
     private final ContactService contactService;
     private final FileStorageService fileStorageService;
     private final com.pandeyjee.portfolio.service.AnalyticsService analyticsService;
+    private final com.pandeyjee.portfolio.service.EmailService emailService;
 
     public AdminController(
             AdminService adminService,
             ContactService contactService,
             FileStorageService fileStorageService,
-            com.pandeyjee.portfolio.service.AnalyticsService analyticsService) {
+            com.pandeyjee.portfolio.service.AnalyticsService analyticsService,
+            com.pandeyjee.portfolio.service.EmailService emailService) {
         this.adminService = adminService;
         this.contactService = contactService;
         this.fileStorageService = fileStorageService;
         this.analyticsService = analyticsService;
+        this.emailService = emailService;
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -364,5 +367,10 @@ public class AdminController {
             @AuthenticationPrincipal UserDetails userDetails,
             HttpServletRequest request) {
         return ResponseEntity.ok(adminService.updateSettings(settings, userDetails.getUsername(), getClientIp(request)));
+    }
+
+    @PostMapping("/test-email")
+    public ResponseEntity<Map<String, Object>> testEmailDispatch() {
+        return ResponseEntity.ok(emailService.sendDiagnosticTestEmail());
     }
 }

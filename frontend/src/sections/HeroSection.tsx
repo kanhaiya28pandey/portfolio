@@ -67,7 +67,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <section
       id="home"
-      className="relative min-h-0 pt-20 pb-8 sm:pt-24 sm:pb-10 lg:pt-28 lg:pb-12 flex items-center justify-center overflow-hidden"
+      className="scroll-mt-20 sm:scroll-mt-24 relative min-h-0 pt-20 pb-8 sm:pt-24 sm:pb-10 lg:pt-28 lg:pb-12 flex items-center justify-center overflow-hidden"
     >
       {/* Subtle Background Radial Glows */}
       <div

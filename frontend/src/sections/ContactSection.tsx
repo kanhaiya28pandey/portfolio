@@ -158,7 +158,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ profile, setting
   };
 
   return (
-    <section id="contact" className="relative py-8 sm:py-10 lg:py-14 overflow-hidden select-text">
+    <section id="contact" className="scroll-mt-20 sm:scroll-mt-24 relative py-8 sm:py-10 lg:py-14 overflow-hidden select-text">
       {/* Background ambient lighting */}
       <div
         className="absolute top-1/4 -left-36 w-[480px] h-[480px] rounded-full pointer-events-none"

@@ -1348,4 +1348,30 @@ export const clearAllAdminVisitors = async (): Promise<void> => {
   if (!response.ok) throw new Error('Failed to clear all visitor logs');
 };
 
+export interface EmailDispatchReport {
+  success: boolean;
+  channel?: string;
+  recipient?: string;
+  message?: string;
+  timestamp?: string;
+  troubleshooting?: string;
+  resendError?: string;
+  web3formsError?: string;
+  brevoError?: string;
+  smtpError?: string;
+}
+
+export const testAdminEmailDispatch = async (): Promise<EmailDispatchReport> => {
+  const response = await fetch(`${API_BASE_URL}/admin/test-email`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(errorBody.message || 'Failed to dispatch test email');
+  }
+  return response.json();
+};
+
 

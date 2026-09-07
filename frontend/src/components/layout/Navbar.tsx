@@ -98,29 +98,30 @@ export const Navbar: React.FC = () => {
     setMobileMenuOpen(false);
     const targetId = href.replace('#', '');
     
-    // Wake up target lazy section immediately so it is mounted before smooth scroll reaches it
+    // 1. Instantly wake up ALL sections so dynamic heights stabilize completely
+    window.dispatchEvent(new CustomEvent('portfolio-mount-all'));
     if (targetId) {
       window.dispatchEvent(new CustomEvent('portfolio-nav-target', { detail: targetId }));
     }
 
-    // Defer scrolling slightly so mobile drawer closure doesn't interrupt or offset layout calculations
-    setTimeout(() => {
+    const scrollToTarget = () => {
       const targetEl = document.getElementById(targetId);
       if (targetEl) {
-        const navHeight = 70;
-        const bodyRect = document.body.getBoundingClientRect().top;
-        const elementRect = targetEl.getBoundingClientRect().top;
-        const elementPosition = elementRect - bodyRect;
-        const offsetPosition = Math.max(0, elementPosition - navHeight);
-
-        window.scrollTo({
-          top: offsetPosition,
+        targetEl.scrollIntoView({
           behavior: 'smooth',
+          block: 'start',
         });
       } else {
         window.location.hash = href;
       }
-    }, 120);
+    };
+
+    // First pass immediately
+    scrollToTarget();
+
+    // Secondary settling passes to ensure tracking if DOM heights shifted during mount
+    setTimeout(scrollToTarget, 80);
+    setTimeout(scrollToTarget, 240);
   };
 
   return (

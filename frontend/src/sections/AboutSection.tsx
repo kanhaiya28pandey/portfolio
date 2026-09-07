@@ -44,7 +44,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
   const latestEducation = educations && educations.length > 0 ? educations[0] : null;
 
   return (
-    <section id="about" className="relative py-8 sm:py-10 lg:py-12 overflow-hidden">
+    <section id="about" className="scroll-mt-20 sm:scroll-mt-24 relative py-8 sm:py-10 lg:py-12 overflow-hidden">
       {/* Background ambient lighting */}
       <div
         className="absolute top-1/2 left-0 w-80 h-80 rounded-full pointer-events-none"

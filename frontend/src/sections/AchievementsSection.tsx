@@ -23,7 +23,7 @@ export const AchievementsSection: React.FC<AchievementsSectionProps> = ({ achiev
   if (!achievements || achievements.length === 0) return null;
 
   return (
-    <section id="achievements" className="relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text">
+    <section id="achievements" className="scroll-mt-20 sm:scroll-mt-24 relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text">
       {/* Seamless Ambient Backlight Spheres */}
       <div
         className="absolute top-1/4 -left-48 w-[450px] h-[450px] rounded-full pointer-events-none"

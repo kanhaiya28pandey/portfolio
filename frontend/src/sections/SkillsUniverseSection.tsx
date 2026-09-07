@@ -138,7 +138,7 @@ export const SkillsUniverseSection: React.FC<SkillsUniverseSectionProps> = ({ sk
     <section
       id="skills"
       aria-label="Skills Universe Section"
-      className="relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text"
+      className="scroll-mt-20 sm:scroll-mt-24 relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text"
     >
       {/* Ambient background glows matching site design system */}
       <div

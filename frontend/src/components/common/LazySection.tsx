@@ -4,6 +4,7 @@ import { SkeletonLoader } from './SkeletonLoader';
 
 interface LazySectionProps {
   id?: string;
+  sectionKey?: string;
   className?: string;
   minHeight?: string;
   children: React.ReactNode;
@@ -12,6 +13,7 @@ interface LazySectionProps {
 
 export const LazySection: React.FC<LazySectionProps> = ({
   id,
+  sectionKey,
   className = '',
   minHeight = 'min-h-[380px]',
   children,
@@ -19,10 +21,11 @@ export const LazySection: React.FC<LazySectionProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const effectiveKey = sectionKey || id;
 
   useEffect(() => {
     // If the page was loaded with a hash matching this section, mount immediately
-    if (id && window.location.hash === `#${id}`) {
+    if (effectiveKey && window.location.hash === `#${effectiveKey}`) {
       setIsVisible(true);
       return;
     }
@@ -30,12 +33,24 @@ export const LazySection: React.FC<LazySectionProps> = ({
     // Listen for direct navigation events from the Navbar
     const handleNavTarget = (e: Event) => {
       const customEvent = e as CustomEvent<string>;
-      if (id && customEvent.detail === id) {
+      if (effectiveKey && customEvent.detail === effectiveKey) {
         setIsVisible(true);
       }
     };
 
+    // Mount all sections when user initiates any navigation jump
+    const handleMountAll = () => {
+      setIsVisible(true);
+    };
+
     window.addEventListener('portfolio-nav-target', handleNavTarget);
+    window.addEventListener('portfolio-mount-all', handleMountAll);
+
+    // Idle hydration: after 1.5 seconds, progressively mount all sections in background
+    // so heights stabilize completely and never jump during user scroll
+    const idleTimer = setTimeout(() => {
+      setIsVisible(true);
+    }, 1500);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -46,7 +61,7 @@ export const LazySection: React.FC<LazySectionProps> = ({
       },
       {
         root: null,
-        rootMargin: '800px 0px 800px 0px', // Preload smoothly 800px before reaching viewport
+        rootMargin: '1000px 0px 1000px 0px',
         threshold: 0.01,
       }
     );
@@ -56,15 +71,17 @@ export const LazySection: React.FC<LazySectionProps> = ({
     }
 
     return () => {
+      clearTimeout(idleTimer);
       observer.disconnect();
       window.removeEventListener('portfolio-nav-target', handleNavTarget);
+      window.removeEventListener('portfolio-mount-all', handleMountAll);
     };
-  }, [id]);
+  }, [effectiveKey]);
 
   return (
     <div
       ref={containerRef}
-      id={id}
+      id={id ? id : undefined}
       className={`relative ${minHeight} ${className}`}
     >
       {isVisible ? (

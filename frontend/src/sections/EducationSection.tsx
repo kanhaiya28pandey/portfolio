@@ -272,7 +272,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations }
     <section
       id="education"
       aria-label="Education and Academic Journey"
-      className="relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text"
+      className="scroll-mt-20 sm:scroll-mt-24 relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text"
     >
       {/* Background Ambient Glows */}
       <div

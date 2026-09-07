@@ -1,21 +1,35 @@
 package com.pandeyjee.portfolio.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pandeyjee.portfolio.entity.ContactMessage;
+import com.pandeyjee.portfolio.entity.SiteSetting;
+import com.pandeyjee.portfolio.repository.SiteSettingRepository;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.HtmlUtils;
 
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class EmailService {
@@ -26,57 +40,361 @@ public class EmailService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
+    @Autowired
+    private SiteSettingRepository siteSettingRepository;
+
     @Value("${spring.mail.username:}")
     private String mailFrom;
+
+    @Value("${spring.mail.password:}")
+    private String mailPassword;
 
     @Value("${portfolio.mail.enabled:true}")
     private boolean mailEnabled;
 
     @Value("${portfolio.mail.recipient:kanhaiya542112@gmail.com}")
-    private String recipientEmail;
+    private String configuredRecipient;
+
+    @Value("${portfolio.mail.resend-api-key:}")
+    private String configuredResendApiKey;
+
+    @Value("${portfolio.mail.web3forms-key:}")
+    private String configuredWeb3formsKey;
+
+    @Value("${portfolio.mail.brevo-api-key:}")
+    private String configuredBrevoApiKey;
+
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(12))
+            .build();
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public String getEffectiveRecipient() {
+        Optional<SiteSetting> setting = siteSettingRepository.findBySettingKey("recipient_email");
+        if (setting.isPresent() && StringUtils.hasText(setting.get().getSettingValue())) {
+            return setting.get().getSettingValue().trim();
+        }
+        return StringUtils.hasText(configuredRecipient) ? configuredRecipient.trim() : "kanhaiya542112@gmail.com";
+    }
+
+    public String getEffectiveResendApiKey() {
+        if (StringUtils.hasText(configuredResendApiKey)) {
+            return configuredResendApiKey.trim();
+        }
+        return siteSettingRepository.findBySettingKey("resend_api_key")
+                .map(s -> s.getSettingValue().trim())
+                .filter(StringUtils::hasText)
+                .orElse("");
+    }
+
+    public String getEffectiveWeb3FormsKey() {
+        if (StringUtils.hasText(configuredWeb3formsKey)) {
+            return configuredWeb3formsKey.trim();
+        }
+        return siteSettingRepository.findBySettingKey("web3forms_key")
+                .map(s -> s.getSettingValue().trim())
+                .filter(StringUtils::hasText)
+                .orElse("");
+    }
+
+    public String getEffectiveBrevoApiKey() {
+        if (StringUtils.hasText(configuredBrevoApiKey)) {
+            return configuredBrevoApiKey.trim();
+        }
+        return siteSettingRepository.findBySettingKey("brevo_api_key")
+                .map(s -> s.getSettingValue().trim())
+                .filter(StringUtils::hasText)
+                .orElse("");
+    }
 
     @Async
     public void sendContactNotification(ContactMessage message) {
-        String effectiveFrom = StringUtils.hasText(mailFrom) ? mailFrom : recipientEmail;
         if (!mailEnabled) {
-            log.info("Email notification disabled by configuration (portfolio.mail.enabled=false). Message #{} from {} saved in database.",
+            log.info("Email notification disabled by configuration (portfolio.mail.enabled=false). Message #{} from {} saved in DB.",
                     message.getId(), message.getEmail());
             return;
         }
-        if (mailSender == null) {
-            log.warn("JavaMailSender bean is not active. Message #{} from {} ({}) safely saved in database.",
-                    message.getId(), message.getName(), message.getEmail());
-            return;
+
+        String recipient = getEffectiveRecipient();
+        String resendKey = getEffectiveResendApiKey();
+        String web3FormsKey = getEffectiveWeb3FormsKey();
+        String brevoKey = getEffectiveBrevoApiKey();
+
+        String typeStr = message.getInquiryType() != null ? message.getInquiryType().name() : "GENERAL";
+        String subjectText = "⚡ [Portfolio Inquiry • " + typeStr + "] " + message.getSubject() + " - " + message.getName();
+        String plainText = buildPlainText(message, typeStr);
+        String htmlText = buildHtmlContent(message, typeStr);
+
+        // 1. Try Resend REST API (HTTPS Port 443 - 100% allowed on Render Free Tier)
+        if (StringUtils.hasText(resendKey)) {
+            try {
+                boolean sent = sendViaResend(resendKey, recipient, message.getEmail(), message.getName(), subjectText, htmlText);
+                if (sent) {
+                    log.info("Contact notification #{} successfully sent to {} via Resend REST API (HTTPS).",
+                            message.getId(), recipient);
+                    return;
+                }
+            } catch (Exception e) {
+                log.warn("Resend API attempt failed for message #{}: {}. Falling back to next channel.",
+                        message.getId(), e.getMessage());
+            }
         }
 
-        try {
-            MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+        // 2. Try Web3Forms REST API (HTTPS Port 443 - 100% allowed on Render Free Tier)
+        if (StringUtils.hasText(web3FormsKey)) {
+            try {
+                boolean sent = sendViaWeb3Forms(web3FormsKey, message.getName(), message.getEmail(), subjectText, plainText);
+                if (sent) {
+                    log.info("Contact notification #{} successfully sent to {} via Web3Forms API (HTTPS).",
+                            message.getId(), recipient);
+                    return;
+                }
+            } catch (Exception e) {
+                log.warn("Web3Forms API attempt failed for message #{}: {}. Falling back to next channel.",
+                        message.getId(), e.getMessage());
+            }
+        }
 
-            helper.setTo(recipientEmail);
-            String fromDisplayName = "Portfolio Alert • " + message.getName();
-            helper.setFrom(effectiveFrom, fromDisplayName);
+        // 3. Try Brevo REST API (HTTPS Port 443)
+        if (StringUtils.hasText(brevoKey)) {
+            try {
+                String senderEmail = StringUtils.hasText(mailFrom) ? mailFrom.trim() : "kanhaiya542112@gmail.com";
+                boolean sent = sendViaBrevo(brevoKey, senderEmail, recipient, message.getEmail(), message.getName(), subjectText, htmlText);
+                if (sent) {
+                    log.info("Contact notification #{} successfully sent to {} via Brevo API (HTTPS).",
+                            message.getId(), recipient);
+                    return;
+                }
+            } catch (Exception e) {
+                log.warn("Brevo API attempt failed for message #{}: {}. Falling back to next channel.",
+                        message.getId(), e.getMessage());
+            }
+        }
+
+        // 4. Fallback to JavaMailSender SMTP (works on localhost or paid cloud hosting)
+        if (mailSender != null) {
+            try {
+                sendViaSmtp(message, recipient, subjectText, plainText, htmlText);
+                log.info("Contact notification #{} successfully sent to {} via JavaMail SMTP.",
+                        message.getId(), recipient);
+                return;
+            } catch (Exception e) {
+                log.error("JavaMail SMTP failed for message #{} to {}: {}. " +
+                          "Note: Render Free Tier restricts outbound SMTP ports (25, 465, 587). " +
+                          "To receive emails on Render, configure RESEND_API_KEY or WEB3FORMS_ACCESS_KEY in Render environment variables or Admin Settings.",
+                        message.getId(), recipient, e.getMessage());
+            }
+        } else {
+            log.warn("No active email channel configured. Message #{} from {} is safely stored in database.",
+                    message.getId(), message.getEmail());
+        }
+    }
+
+    public Map<String, Object> sendDiagnosticTestEmail() {
+        Map<String, Object> result = new HashMap<>();
+        String recipient = getEffectiveRecipient();
+        result.put("recipient", recipient);
+        result.put("timestamp", LocalDateTime.now().format(DATE_FORMATTER));
+
+        ContactMessage testMsg = ContactMessage.builder()
+                .id(999999L)
+                .name("Kanhaiya Portfolio Diagnostics")
+                .email(recipient)
+                .subject("Test Email Verification • Portfolio System")
+                .message("This is a live diagnostic verification email from your Kanhaiya Pandey Portfolio System. If you received this, your email delivery pipeline is fully functional!")
+                .ipAddress("127.0.0.1")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        String subjectText = "⚡ [Portfolio Diagnostics] Verification Email - " + recipient;
+        String plainText = buildPlainText(testMsg, "DIAGNOSTIC_TEST");
+        String htmlText = buildHtmlContent(testMsg, "DIAGNOSTIC_TEST");
+
+        String resendKey = getEffectiveResendApiKey();
+        String web3FormsKey = getEffectiveWeb3FormsKey();
+        String brevoKey = getEffectiveBrevoApiKey();
+
+        // 1. Try Resend
+        if (StringUtils.hasText(resendKey)) {
+            try {
+                boolean sent = sendViaResend(resendKey, recipient, recipient, "Portfolio Admin", subjectText, htmlText);
+                if (sent) {
+                    result.put("success", true);
+                    result.put("channel", "RESEND_API (HTTPS 443)");
+                    result.put("message", "Test email successfully delivered to " + recipient + " via Resend REST API!");
+                    return result;
+                }
+            } catch (Exception e) {
+                result.put("resendError", e.getMessage());
+            }
+        }
+
+        // 2. Try Web3Forms
+        if (StringUtils.hasText(web3FormsKey)) {
+            try {
+                boolean sent = sendViaWeb3Forms(web3FormsKey, "Portfolio Admin", recipient, subjectText, plainText);
+                if (sent) {
+                    result.put("success", true);
+                    result.put("channel", "WEB3FORMS_API (HTTPS 443)");
+                    result.put("message", "Test email successfully delivered to " + recipient + " via Web3Forms REST API!");
+                    return result;
+                }
+            } catch (Exception e) {
+                result.put("web3formsError", e.getMessage());
+            }
+        }
+
+        // 3. Try Brevo
+        if (StringUtils.hasText(brevoKey)) {
+            try {
+                String senderEmail = StringUtils.hasText(mailFrom) ? mailFrom.trim() : recipient;
+                boolean sent = sendViaBrevo(brevoKey, senderEmail, recipient, recipient, "Portfolio Admin", subjectText, htmlText);
+                if (sent) {
+                    result.put("success", true);
+                    result.put("channel", "BREVO_API (HTTPS 443)");
+                    result.put("message", "Test email successfully delivered to " + recipient + " via Brevo REST API!");
+                    return result;
+                }
+            } catch (Exception e) {
+                result.put("brevoError", e.getMessage());
+            }
+        }
+
+        // 4. Try SMTP
+        if (mailSender != null) {
+            try {
+                sendViaSmtp(testMsg, recipient, subjectText, plainText, htmlText);
+                result.put("success", true);
+                result.put("channel", "JAVA_MAIL_SMTP (Port 587)");
+                result.put("message", "Test email successfully delivered to " + recipient + " via SMTP!");
+                return result;
+            } catch (Exception e) {
+                result.put("smtpError", e.getMessage());
+            }
+        }
+
+        result.put("success", false);
+        result.put("channel", "NONE_AVAILABLE");
+        result.put("message", "Email delivery failed on all channels.");
+        result.put("troubleshooting",
+                "Render's Free Tier blocks outbound SMTP ports 25, 465, and 587. " +
+                "To deliver emails reliably on Render, obtain a free API key from Resend (https://resend.com - 3000 emails/mo free) " +
+                "or Web3Forms (https://web3forms.com - free instant key) and add RESEND_API_KEY or WEB3FORMS_ACCESS_KEY in Render Environment Variables or Admin Settings.");
+        return result;
+    }
+
+    private boolean sendViaResend(String apiKey, String toEmail, String replyToEmail, String replyToName, String subject, String htmlContent) throws Exception {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("from", "Portfolio Alert <onboarding@resend.dev>");
+        payload.put("to", List.of(toEmail));
+        payload.put("subject", subject);
+        payload.put("html", htmlContent);
+        if (StringUtils.hasText(replyToEmail)) {
+            payload.put("reply_to", replyToEmail);
+        }
+
+        String json = objectMapper.writeValueAsString(payload);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.resend.com/emails"))
+                .header("Authorization", "Bearer " + apiKey)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(10))
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            log.info("Resend API response: status={} body={}", response.statusCode(), response.body());
+            return true;
+        } else {
+            log.warn("Resend API returned non-2xx status: {} body: {}", response.statusCode(), response.body());
+            throw new RuntimeException("Resend API HTTP " + response.statusCode() + ": " + response.body());
+        }
+    }
+
+    private boolean sendViaWeb3Forms(String accessKey, String fromName, String fromEmail, String subject, String messageText) throws Exception {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("access_key", accessKey);
+        payload.put("name", fromName);
+        payload.put("email", fromEmail);
+        payload.put("subject", subject);
+        payload.put("message", messageText);
+        payload.put("from_name", "Portfolio System • " + fromName);
+
+        String json = objectMapper.writeValueAsString(payload);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.web3forms.com/submit"))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(10))
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            log.info("Web3Forms API response: status={} body={}", response.statusCode(), response.body());
+            return true;
+        } else {
+            log.warn("Web3Forms API returned non-2xx status: {} body: {}", response.statusCode(), response.body());
+            throw new RuntimeException("Web3Forms API HTTP " + response.statusCode() + ": " + response.body());
+        }
+    }
+
+    private boolean sendViaBrevo(String apiKey, String senderEmail, String toEmail, String replyToEmail, String replyToName, String subject, String htmlContent) throws Exception {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("sender", Map.of("name", "Portfolio Alert", "email", senderEmail));
+        payload.put("to", List.of(Map.of("email", toEmail, "name", "Kanhaiya Pandey")));
+        if (StringUtils.hasText(replyToEmail)) {
+            payload.put("replyTo", Map.of("email", replyToEmail, "name", replyToName != null ? replyToName : "Inquirer"));
+        }
+        payload.put("subject", subject);
+        payload.put("htmlContent", htmlContent);
+
+        String json = objectMapper.writeValueAsString(payload);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.brevo.com/v3/smtp/email"))
+                .header("api-key", apiKey)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(10))
+                .POST(HttpRequest.BodyPublishers.ofString(json, StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            log.info("Brevo API response: status={} body={}", response.statusCode(), response.body());
+            return true;
+        } else {
+            throw new RuntimeException("Brevo API HTTP " + response.statusCode() + ": " + response.body());
+        }
+    }
+
+    private void sendViaSmtp(ContactMessage message, String recipient, String subjectText, String plainText, String htmlText) throws Exception {
+        if (mailSender instanceof JavaMailSenderImpl impl) {
+            if (StringUtils.hasText(impl.getPassword())) {
+                impl.setPassword(impl.getPassword().replace(" ", "").trim());
+            }
+            if (StringUtils.hasText(impl.getUsername())) {
+                impl.setUsername(impl.getUsername().trim());
+            }
+        }
+
+        String effectiveFrom = StringUtils.hasText(mailFrom) ? mailFrom.trim() : recipient;
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+        helper.setTo(recipient);
+        String fromDisplayName = "Portfolio Alert • " + (message.getName() != null ? message.getName() : "Visitor");
+        helper.setFrom(effectiveFrom, fromDisplayName);
+        if (StringUtils.hasText(message.getEmail())) {
             helper.setReplyTo(message.getEmail(), message.getName());
-
-            String typeStr = message.getInquiryType() != null ? message.getInquiryType().name() : "GENERAL";
-            String subjectText = "⚡ [Portfolio Inquiry • " + typeStr + "] " + message.getSubject() + " - " + message.getName();
-            helper.setSubject(subjectText);
-
-            String plainText = buildPlainText(message, typeStr);
-            String htmlText = buildHtmlContent(message, typeStr);
-
-            helper.setText(plainText, htmlText);
-
-            mailSender.send(mimeMessage);
-            log.info("Stylish HTML contact notification email dispatched successfully to {} for message #{} from {}",
-                    recipientEmail, message.getId(), message.getEmail());
-        } catch (Exception e) {
-            log.error("Failed to send contact notification email for message #{} to {}: {}. " +
-                    "Troubleshooting: Ensure Render environment variables include SPRING_MAIL_HOST=smtp.gmail.com, " +
-                    "SPRING_MAIL_PORT=587, SPRING_MAIL_USERNAME=kanhaiya542112@gmail.com, " +
-                    "and SPRING_MAIL_PASSWORD=<16-digit-Google-App-Password>.",
-                    message.getId(), recipientEmail, e.getMessage(), e);
         }
+        helper.setSubject(subjectText);
+        helper.setText(plainText, htmlText);
+
+        mailSender.send(mimeMessage);
     }
 
     private String buildPlainText(ContactMessage message, String typeStr) {

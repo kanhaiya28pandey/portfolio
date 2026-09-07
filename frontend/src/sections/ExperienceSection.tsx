@@ -161,7 +161,7 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({ experience
     <section
       id="experience"
       aria-label="Engineering Experience and Internships"
-      className="relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text"
+      className="scroll-mt-20 sm:scroll-mt-24 relative py-8 sm:py-10 lg:py-12 overflow-hidden select-text"
     >
       {/* Background Ambient Glows */}
       <div

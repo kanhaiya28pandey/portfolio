@@ -4,6 +4,7 @@ import {
   Layers,
   Cpu,
   Mail,
+  Send,
   FileText,
   LogOut,
   ExternalLink,
@@ -110,6 +111,8 @@ import {
   batchDeleteAdminVisitors,
   clearOldAdminVisitors,
   clearAllAdminVisitors,
+  testAdminEmailDispatch,
+  type EmailDispatchReport,
 } from '../../services/api';
 import type {
   AdminUser,
@@ -265,6 +268,27 @@ export const AdminDashboardPage: React.FC = () => {
   const [eduCertUrl, setEduCertUrl] = useState("");
   const [eduCertType, setEduCertType] = useState("MARKSHEET");
   const [uploadingEduCert, setUploadingEduCert] = useState(false);
+
+  const [testingEmail, setTestingEmail] = useState(false);
+  const [emailDiagnosticReport, setEmailDiagnosticReport] = useState<EmailDispatchReport | null>(null);
+
+  const handleTestEmailDispatch = async () => {
+    setTestingEmail(true);
+    setEmailDiagnosticReport(null);
+    try {
+      const report = await testAdminEmailDispatch();
+      setEmailDiagnosticReport(report);
+      if (report.success) {
+        showNotice('success', `Test email dispatched successfully via ${report.channel || 'Active Channel'}!`);
+      } else {
+        showNotice('error', `Email dispatch failed: ${report.message || 'Check diagnostics'}`);
+      }
+    } catch (err: unknown) {
+      showNotice('error', err instanceof Error ? err.message : 'Test email failed');
+    } finally {
+      setTestingEmail(false);
+    }
+  };
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -7699,6 +7723,141 @@ export const AdminDashboardPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
+              </GlassCard>
+
+              {/* Email Service & Delivery Diagnostic Card */}
+              <GlassCard className="p-6 space-y-5 border-blue-500/30">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-cyan-400" />
+                    <div>
+                      <h3 className="text-sm font-bold font-mono text-white uppercase tracking-wider">
+                        Email Dispatch &amp; Port Unblock Diagnostic
+                      </h3>
+                      <p className="text-[11px] text-slate-400 font-mono">
+                        Instant notification forwarding when visitors submit contact forms.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleTestEmailDispatch}
+                    disabled={testingEmail}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-mono text-xs font-bold flex items-center gap-2 transition-all shadow-md disabled:opacity-50 cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{testingEmail ? 'Sending Test...' : 'Send Test Email'}</span>
+                  </button>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-blue-950/40 border border-blue-500/20 text-xs font-mono text-slate-300 space-y-1.5">
+                  <div className="flex items-center gap-2 font-bold text-blue-400">
+                    <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                    <span>Important: Render Free Tier SMTP Restriction</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    Render free instances block outbound SMTP ports (25, 465, 587). To receive email alerts on Render Free Tier, provide a free <strong className="text-cyan-300">Resend API Key</strong> (3,000 emails/mo free via <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="underline text-blue-400">resend.com</a>) or <strong className="text-amber-300">Web3Forms Key</strong> (<a href="https://web3forms.com" target="_blank" rel="noopener noreferrer" className="underline text-amber-400">web3forms.com</a>). HTTPS port 443 is 100% open and delivers directly to your Gmail inbox.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-slate-300 mb-1 font-semibold">
+                      Recipient Email (Your Inbox) *
+                    </label>
+                    <input
+                      type="email"
+                      value={settings.recipient_email ?? 'kanhaiya542112@gmail.com'}
+                      onChange={(e) =>
+                        setSettings({ ...settings, recipient_email: e.target.value })
+                      }
+                      placeholder="kanhaiya542112@gmail.com"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-cyan-300 font-mono text-xs focus:outline-none focus:border-cyan-500"
+                    />
+                    <p className="mt-1 text-[10px] text-slate-400 font-mono">
+                      Where inquiries are forwarded.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-slate-300 mb-1 font-semibold">
+                      Resend API Key (Recommended)
+                    </label>
+                    <input
+                      type="password"
+                      value={settings.resend_api_key || ''}
+                      onChange={(e) =>
+                        setSettings({ ...settings, resend_api_key: e.target.value })
+                      }
+                      placeholder="re_xxxxxxxxxxxx"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-emerald-300 font-mono text-xs focus:outline-none focus:border-emerald-500"
+                    />
+                    <p className="mt-1 text-[10px] text-slate-400 font-mono">
+                      Free tier: 3,000 emails/mo via resend.com
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-slate-300 mb-1 font-semibold">
+                      Web3Forms Access Key
+                    </label>
+                    <input
+                      type="password"
+                      value={settings.web3forms_key || ''}
+                      onChange={(e) =>
+                        setSettings({ ...settings, web3forms_key: e.target.value })
+                      }
+                      placeholder="Access Key from web3forms.com"
+                      className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-amber-300 font-mono text-xs focus:outline-none focus:border-amber-500"
+                    />
+                    <p className="mt-1 text-[10px] text-slate-400 font-mono">
+                      Alternative HTTP relay via web3forms.com
+                    </p>
+                  </div>
+                </div>
+
+                {emailDiagnosticReport && (
+                  <div
+                    className={`p-4 rounded-xl border text-xs font-mono space-y-2 ${
+                      emailDiagnosticReport.success
+                        ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+                        : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 font-bold">
+                        {emailDiagnosticReport.success ? (
+                          <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-rose-400" />
+                        )}
+                        <span>
+                          {emailDiagnosticReport.success
+                            ? 'DISPATCH SUCCESS'
+                            : 'DISPATCH ERROR / NOTICE'}
+                        </span>
+                      </div>
+                      {emailDiagnosticReport.timestamp && (
+                        <span className="text-[10px] text-slate-400">
+                          {emailDiagnosticReport.timestamp}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-white font-semibold">
+                      {emailDiagnosticReport.message}
+                    </p>
+                    {emailDiagnosticReport.channel && (
+                      <div className="text-[11px] text-slate-300">
+                        Active Channel: <strong className="text-cyan-400">{emailDiagnosticReport.channel}</strong>
+                      </div>
+                    )}
+                    {emailDiagnosticReport.troubleshooting && (
+                      <p className="text-[11px] text-amber-300/90 leading-relaxed pt-1 border-t border-white/10">
+                        💡 {emailDiagnosticReport.troubleshooting}
+                      </p>
+                    )}
+                  </div>
+                )}
               </GlassCard>
 
               <div className="flex items-center justify-end gap-3 pt-2">
