@@ -58,12 +58,34 @@ public class PublicPortfolioController {
         String[] profiles = environment != null ? environment.getActiveProfiles() : new String[0];
         String activeProfile = profiles.length > 0 ? String.join(", ", profiles) : "default";
 
+        long storedFilesCount = 0;
+        List<String> sampleStoredFiles = new java.util.ArrayList<>();
+        if (dataSource != null) {
+            try (java.sql.Connection conn = dataSource.getConnection();
+                 java.sql.Statement stmt = conn.createStatement()) {
+                try (java.sql.ResultSet rs = stmt.executeQuery("SELECT file_name FROM stored_files ORDER BY id DESC LIMIT 10")) {
+                    while (rs.next()) {
+                        sampleStoredFiles.add(rs.getString(1));
+                    }
+                }
+                try (java.sql.ResultSet rs = stmt.executeQuery("SELECT count(*) FROM stored_files")) {
+                    if (rs.next()) {
+                        storedFilesCount = rs.getLong(1);
+                    }
+                }
+            } catch (Exception e) {
+                sampleStoredFiles.add("DB Error: " + e.getMessage());
+            }
+        }
+
         return ResponseEntity.ok(Map.of(
             "status", "UP",
             "service", "portfolio-backend",
             "activeProfile", activeProfile,
             "databaseProduct", dbProduct,
             "databaseUrl", dbUrl,
+            "storedFilesCount", storedFilesCount,
+            "sampleStoredFiles", sampleStoredFiles,
             "timestamp", java.time.Instant.now().toString()
         ));
     }

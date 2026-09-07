@@ -19,45 +19,22 @@ export const isImageDocument = (url?: string | null): boolean => {
 };
 
 /**
- * Detects if the current client is a mobile device or tablet (touch-centric viewport).
- */
-export const isMobileOrTabletDevice = (): boolean => {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
-    return false;
-  }
-  const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera || '';
-  const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-  const isTouchDevice = 'maxTouchPoints' in navigator && navigator.maxTouchPoints > 1;
-  const isSmallViewport = window.innerWidth <= 1024;
-
-  return mobileRegex.test(userAgent) || (isTouchDevice && isSmallViewport);
-};
-
-/**
- * Opens a document (PDF, image, or web credential) optimized for the user's device.
- * 
- * - Mobile / Tablet: For public HTTP(S) PDF links, routes through Google Docs Viewer
- *   so that iOS and Android devices render the document inline immediately with full zoom
- *   and page navigation without requiring external PDF reader apps or failing on downloads.
- * - Desktop: Opens directly in a new tab utilizing the browser's built-in PDF viewer engine.
+ * Opens a document (PDF, image, or web credential) safely using a native anchor click.
+ * This guarantees it is never blocked by mobile browser popup blockers (Safari iOS / Chrome Android)
+ * and does not rely on third-party viewer proxies like Google Docs Viewer that break or require sign-in.
  */
 export const openDocument = (url?: string | null, _title?: string): void => {
   if (!url) return;
   const resolved = resolveAssetUrl(url);
   if (!resolved) return;
 
-  const isPdf = isPdfDocument(resolved);
-  const isMobile = isMobileOrTabletDevice();
-
-  // If it's a PDF on mobile/tablet and hosted over HTTP/HTTPS, use Google Docs Viewer for seamless rendering
-  if (isPdf && isMobile && (resolved.startsWith('http://') || resolved.startsWith('https://'))) {
-    const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(resolved)}&embedded=false`;
-    window.open(viewerUrl, '_blank', 'noopener,noreferrer');
-    return;
-  }
-
-  // Desktop or direct image / web credential URL
-  window.open(resolved, '_blank', 'noopener,noreferrer');
+  const link = document.createElement('a');
+  link.href = resolved;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 /**

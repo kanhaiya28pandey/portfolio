@@ -92,6 +92,12 @@ public class SecurityConfig {
         if (!origins.contains("https://*.vercel.app")) {
             origins.add("https://*.vercel.app");
         }
+        if (!origins.contains("https://kanhaiyapandey.in")) {
+            origins.add("https://kanhaiyapandey.in");
+        }
+        if (!origins.contains("https://*.kanhaiyapandey.in")) {
+            origins.add("https://*.kanhaiyapandey.in");
+        }
         if (!origins.contains("http://localhost:*")) {
             origins.add("http://localhost:*");
         }

@@ -132,7 +132,6 @@ import type {
   AnalyticsSummary,
 } from '../../types/portfolio';
 import { resolveAssetUrl } from '../../utils/assetUrl';
-import { openDocument } from '../../utils/documentViewer';
 
 type ActiveTab =
   | 'overview'
@@ -3604,16 +3603,17 @@ export const AdminDashboardPage: React.FC = () => {
                                 </div>
 
                                 <div className="flex items-center gap-2 flex-shrink-0">
-                                  <button
-                                    type="button"
-                                    onClick={() => openDocument(c.fileUrl, c.title)}
+                                  <a
+                                    href={resolveAssetUrl(c.fileUrl)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className={`p-1 transition-colors cursor-pointer ${
                                       adminTheme === 'light' ? 'text-blue-600 hover:text-blue-800' : 'text-cyan-400 hover:text-cyan-300'
                                     }`}
                                     title="Preview"
                                   >
                                     <ExternalLink className="w-3.5 h-3.5" />
-                                  </button>
+                                  </a>
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveCertFromExperience(cIdx)}
@@ -4260,16 +4260,17 @@ export const AdminDashboardPage: React.FC = () => {
                                 </div>
 
                                 <div className="flex items-center gap-2 flex-shrink-0">
-                                  <button
-                                    type="button"
-                                    onClick={() => openDocument(c.fileUrl, c.title)}
+                                  <a
+                                    href={resolveAssetUrl(c.fileUrl)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className={`p-1 cursor-pointer transition-colors ${
                                       adminTheme === 'light' ? 'text-cyan-700 hover:text-cyan-800' : 'text-cyan-400 hover:text-cyan-300'
                                     }`}
                                     title="Document Overview"
                                   >
                                     <ExternalLink className="w-3.5 h-3.5" />
-                                  </button>
+                                  </a>
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveCertFromEducation(cIdx)}
@@ -4443,9 +4444,10 @@ export const AdminDashboardPage: React.FC = () => {
                               </span>
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => openDocument(eduCertUrl, eduCertTitle || 'Document')}
+                              <a
+                                href={resolveAssetUrl(eduCertUrl)}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer ${
                                   adminTheme === 'light'
                                     ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800'
@@ -4453,7 +4455,7 @@ export const AdminDashboardPage: React.FC = () => {
                                 }`}
                               >
                                 Document Overview ↗
-                              </button>
+                              </a>
                               <button
                                 type="button"
                                 onClick={handleAddCertToEducation}
@@ -4606,16 +4608,17 @@ export const AdminDashboardPage: React.FC = () => {
                       adminTheme === 'light' ? 'border-slate-200' : 'border-white/10'
                     }`}>
                       {cert.credentialUrl ? (
-                        <button
-                          type="button"
-                          onClick={() => openDocument(cert.credentialUrl, cert.title)}
+                        <a
+                          href={resolveAssetUrl(cert.credentialUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className={`text-[11px] font-mono hover:underline flex items-center gap-1 truncate max-w-[120px] cursor-pointer ${
                             adminTheme === 'light' ? 'text-blue-700 font-bold' : 'text-cyan-400 font-semibold'
                           }`}
                           title="Document Overview"
                         >
                           Overview <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                        </button>
+                        </a>
                       ) : (
                         <span className={`inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full border ${
                           adminTheme === 'light'

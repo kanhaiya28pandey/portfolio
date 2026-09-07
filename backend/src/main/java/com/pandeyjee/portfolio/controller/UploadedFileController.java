@@ -6,6 +6,7 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class UploadedFileController {
 
     private final FileStorageService fileStorageService;
@@ -24,7 +26,7 @@ public class UploadedFileController {
         this.fileStorageService = fileStorageService;
     }
 
-    @RequestMapping(value = "/uploads/{fileName:.+}", method = {RequestMethod.GET, RequestMethod.HEAD})
+    @RequestMapping(value = {"/uploads/{fileName}", "/uploads/{fileName:.+}"}, method = {RequestMethod.GET, RequestMethod.HEAD})
     public ResponseEntity<byte[]> getUploadedFile(@PathVariable String fileName) {
         try {
             FileStorageService.FilePayload payload = fileStorageService.loadFilePayload(fileName);

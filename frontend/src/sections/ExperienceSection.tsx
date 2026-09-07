@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import type { Experience, ExperienceCertificate } from "../types/portfolio";
-import { openDocument, downloadDocument } from "../utils/documentViewer";
+import { resolveAssetUrl } from "../utils/assetUrl";
 
 interface ExperienceSectionProps {
   experiences: Experience[];
@@ -562,18 +562,21 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({ experience
 
             {/* Actions */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => openDocument(activeModalCert.cert.fileUrl, activeModalCert.cert.title)}
+              <a
+                href={resolveAssetUrl(activeModalCert.cert.fileUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-xs font-mono font-bold shadow-[0_4px_14px_rgba(99,102,241,0.35)] transition-all cursor-pointer"
               >
                 <Eye className="w-3.5 h-3.5" />
                 <span>View Document</span>
-              </button>
+              </a>
 
-              <button
-                type="button"
-                onClick={() => downloadDocument(activeModalCert.cert.fileUrl, `${activeModalCert.cert.title}.pdf`)}
+              <a
+                href={resolveAssetUrl(activeModalCert.cert.fileUrl)}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-mono font-medium transition-colors cursor-pointer border ${
                   isDark ? "bg-white/5 hover:bg-white/10 text-slate-200 border-white/10" : "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
                 }`}
@@ -581,7 +584,7 @@ export const ExperienceSection: React.FC<ExperienceSectionProps> = ({ experience
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download</span>
-              </button>
+              </a>
 
               <button
                 type="button"

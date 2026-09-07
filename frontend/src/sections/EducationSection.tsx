@@ -16,7 +16,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import type { Education, ExperienceCertificate } from '../types/portfolio';
-import { openDocument, downloadDocument } from '../utils/documentViewer';
+import { resolveAssetUrl } from '../utils/assetUrl';
 
 interface EducationSectionProps {
   educations: Education[];
@@ -692,18 +692,21 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations }
                       Close
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => openDocument(activeModalDoc.doc.fileUrl, activeModalDoc.doc.title)}
+                    <a
+                      href={resolveAssetUrl(activeModalDoc.doc.fileUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-mono font-bold shadow-lg transition-all cursor-pointer"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Open Document ↗</span>
-                    </button>
+                    </a>
 
-                    <button
-                      type="button"
-                      onClick={() => downloadDocument(activeModalDoc.doc.fileUrl, `${activeModalDoc.doc.title}.pdf`)}
+                    <a
+                      href={resolveAssetUrl(activeModalDoc.doc.fileUrl)}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
                         isDark
                           ? 'bg-white/10 hover:bg-white/20 text-white'
@@ -712,7 +715,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations }
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Download</span>
-                    </button>
+                    </a>
                   </div>
                 </motion.div>
               </div>
