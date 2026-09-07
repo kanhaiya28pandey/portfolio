@@ -32,6 +32,7 @@ export const Navbar: React.FC = () => {
   const isProgrammaticScrollRef = React.useRef(false);
   const programmaticTargetRef = React.useRef<string | null>(null);
   const scrollEndTimerRef = React.useRef<number | null>(null);
+  const ignoreInteractionUntilRef = React.useRef<number>(0);
 
   useEffect(() => {
     fetchPortfolioOverview().then((overview) => {
@@ -129,6 +130,9 @@ export const Navbar: React.FC = () => {
 
     // When user manually scrolls with mouse wheel, touch swipe, or keyboard, release programmatic lock immediately
     const handleManualInteraction = () => {
+      if (Date.now() < ignoreInteractionUntilRef.current) {
+        return;
+      }
       if (isProgrammaticScrollRef.current) {
         isProgrammaticScrollRef.current = false;
         programmaticTargetRef.current = null;
@@ -157,33 +161,84 @@ export const Navbar: React.FC = () => {
     };
   }, [updateActiveSectionFromPosition]);
 
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  // Close mobile drawer on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
+
+  // Close mobile drawer if screen is resized to desktop breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [mobileMenuOpen]);
+
+  // Prevent background body scrolling when mobile menu drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [mobileMenuOpen]);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLElement>, href: string) => {
     e.preventDefault();
-    setMobileMenuOpen(false);
     const targetId = href.replace('#', '');
     if (!targetId) return;
 
-    // 1. Immediately highlight the clicked tab (blue indicator flies directly to it and stays firmly there)
+    // Immediately close mobile drawer if open
+    setMobileMenuOpen(false);
+
+    // Lock programmatic navigation highlight
     setActiveSection(targetId);
     programmaticTargetRef.current = targetId;
     isProgrammaticScrollRef.current = true;
+    ignoreInteractionUntilRef.current = Date.now() + 800;
 
     if (scrollEndTimerRef.current) {
       window.clearTimeout(scrollEndTimerRef.current);
     }
-    // Release programmatic lock only after full settling duration (2200ms) or on manual user interaction
     scrollEndTimerRef.current = window.setTimeout(() => {
       isProgrammaticScrollRef.current = false;
       programmaticTargetRef.current = null;
     }, 2200);
 
-    // 2. Perform smooth scroll directly to target element once
+    // Perform smooth scroll directly to target element with fixed navbar offset
     const targetEl = document.getElementById(targetId);
     if (targetEl) {
-      targetEl.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+      // 50ms delay guarantees mobile Safari & Chrome complete the click/tap cycle & drawer collapse layout
+      // without canceling smooth scroll animation
+      window.setTimeout(() => {
+        const headerEl = document.querySelector('header');
+        const headerHeight = headerEl ? headerEl.offsetHeight : 70;
+        const elementPosition = targetEl.getBoundingClientRect().top + window.scrollY;
+        const offsetPosition = Math.max(0, elementPosition - headerHeight + 8);
+
+        try {
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth',
+          });
+        } catch {
+          targetEl.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+          });
+        }
+      }, 50);
     } else {
       window.location.hash = href;
     }
@@ -191,19 +246,34 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
+      {/* Dimmed backdrop overlay for mobile & tablet drawer - enables outside click to dismiss */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden cursor-pointer"
+            aria-hidden="true"
+          />
+        )}
+      </AnimatePresence>
+
       <header
-      className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-200 ease-out ${
-        isScrolled
-          ? 'py-2.5 sm:py-3 bg-[#060913]/90 dark:bg-[#060913]/90 light:bg-white/90 backdrop-blur-xl border-blue-500/20 light:border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.35)] light:shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
-          : 'py-2.5 sm:py-3 md:py-5 bg-[#060913]/85 dark:bg-[#060913]/85 light:bg-white/85 md:bg-transparent md:dark:bg-transparent md:light:bg-transparent backdrop-blur-lg md:backdrop-blur-none border-blue-500/10 md:border-transparent light:border-slate-200/60 shadow-sm md:shadow-none'
-      }`}
-    >
+        className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-200 ease-out ${
+          isScrolled || mobileMenuOpen
+            ? 'py-2.5 sm:py-3 bg-[#060913]/95 dark:bg-[#060913]/95 light:bg-white/95 backdrop-blur-xl border-blue-500/20 light:border-slate-200/80 shadow-[0_8px_32px_rgba(0,0,0,0.35)] light:shadow-[0_8px_24px_rgba(0,0,0,0.06)]'
+            : 'py-2.5 sm:py-3 md:py-5 bg-[#060913]/85 dark:bg-[#060913]/85 light:bg-white/85 md:bg-transparent md:dark:bg-transparent md:light:bg-transparent backdrop-blur-lg md:backdrop-blur-none border-blue-500/10 md:border-transparent light:border-slate-200/60 shadow-sm md:shadow-none'
+        }`}
+      >
       <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 flex items-center justify-between gap-3 xl:gap-5 flex-nowrap w-full">
         {/* Left: 3D Monogram Logo with Kanhaiya Pandey Name */}
         <a
           href="#home"
           onClick={(e) => handleNavClick(e, '#home')}
-          className="focus:outline-none flex-shrink-0 inline-flex items-center"
+          className="focus:outline-none flex-shrink-0 inline-flex items-center touch-manipulation"
           aria-label="Kanhaiya Pandey Home"
         >
           <BrandLogo3D />
@@ -265,8 +335,8 @@ export const Navbar: React.FC = () => {
             variant="primary"
             icon={<Send className="w-3.5 h-3.5 flex-shrink-0" />}
             iconPosition="right"
-            className="whitespace-nowrap flex-shrink-0 text-[11px] xl:text-xs px-3 py-1.5"
-            onClick={(e) => handleNavClick(e as unknown as React.MouseEvent<HTMLAnchorElement>, '#contact')}
+            className="whitespace-nowrap flex-shrink-0 text-[11px] xl:text-xs px-3 py-1.5 touch-manipulation"
+            onClick={(e) => handleNavClick(e, '#contact')}
           >
             Let's Connect
           </FuturisticButton>
@@ -280,7 +350,7 @@ export const Navbar: React.FC = () => {
             whileTap={{ scale: 0.95 }}
             type="button"
             onClick={openSupport}
-            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 light:border-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 light:border-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer touch-manipulation"
             title="Support via UPI"
           >
             <Heart className="w-3.5 h-3.5 flex-shrink-0 text-rose-400 fill-rose-400/20" />
@@ -289,14 +359,15 @@ export const Navbar: React.FC = () => {
 
           <ThemeToggle />
 
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2.5 rounded-xl bg-white/5 light:bg-slate-100 border border-white/10 light:border-slate-300 text-slate-300 light:text-slate-800 hover:text-white transition-colors cursor-pointer shadow-sm"
-            aria-label="Toggle Navigation Menu"
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            className="p-2.5 rounded-xl bg-white/5 light:bg-slate-100 border border-white/10 light:border-slate-300 text-slate-300 light:text-slate-800 hover:text-white light:hover:text-slate-950 transition-all cursor-pointer shadow-sm active:scale-90 touch-manipulation focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </motion.button>
+          </button>
         </div>
       </div>
 
@@ -307,8 +378,8 @@ export const Navbar: React.FC = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="lg:hidden bg-[#0a0f1d]/98 light:bg-white/98 backdrop-blur-2xl border-b border-white/10 light:border-slate-200 px-5 sm:px-8 py-5 space-y-4 shadow-2xl"
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="lg:hidden mt-2.5 sm:mt-3 border-t border-white/10 light:border-slate-200/80 px-4 sm:px-8 py-4 sm:py-5 space-y-4 max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain shadow-2xl"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1.5 sm:gap-2">
               {navItems.map((item) => {
@@ -318,7 +389,7 @@ export const Navbar: React.FC = () => {
                     key={item.href}
                     href={item.href}
                     onClick={(e) => handleNavClick(e, item.href)}
-                    className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-between ${
+                    className={`px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-between touch-manipulation active:scale-[0.98] select-none ${
                       isActive
                         ? 'bg-gradient-to-r from-blue-600/30 to-purple-600/30 text-cyan-400 light:text-blue-600 border border-cyan-500/40 shadow-sm font-bold'
                         : 'text-slate-300 light:text-slate-700 hover:bg-white/5 light:hover:bg-slate-100 border border-transparent'
@@ -338,7 +409,7 @@ export const Navbar: React.FC = () => {
                   openSupport();
                   setMobileMenuOpen(false);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 font-semibold text-xs whitespace-nowrap hover:bg-amber-500/20 transition-colors cursor-pointer"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 font-semibold text-xs whitespace-nowrap hover:bg-amber-500/20 active:scale-[0.98] touch-manipulation transition-all cursor-pointer"
               >
                 <Heart className="w-4 h-4 flex-shrink-0 text-rose-400 fill-rose-400/20" />
                 <span>Support via UPI ❤️</span>
@@ -346,8 +417,8 @@ export const Navbar: React.FC = () => {
               <FuturisticButton
                 size="md"
                 variant="primary"
-                className="flex-1 justify-center text-xs whitespace-nowrap"
-                onClick={(e) => handleNavClick(e as unknown as React.MouseEvent<HTMLAnchorElement>, '#contact')}
+                className="flex-1 justify-center text-xs whitespace-nowrap touch-manipulation"
+                onClick={(e) => handleNavClick(e, '#contact')}
               >
                 Let's Connect
               </FuturisticButton>
