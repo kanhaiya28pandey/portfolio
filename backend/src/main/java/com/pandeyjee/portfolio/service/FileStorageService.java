@@ -1,5 +1,7 @@
 package com.pandeyjee.portfolio.service;
 
+import com.pandeyjee.portfolio.entity.StoredFile;
+import com.pandeyjee.portfolio.repository.StoredFileRepository;
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +13,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -21,6 +25,7 @@ public class FileStorageService {
     private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
 
     private final Path uploadLocation;
+    private final StoredFileRepository storedFileRepository;
     private final Tika tika = new Tika();
 
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
@@ -34,12 +39,15 @@ public class FileStorageService {
     private static final long MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
     private static final long MAX_DOC_SIZE = 10 * 1024 * 1024; // 10 MB
 
-    public FileStorageService(@Value("${portfolio.storage.upload-dir:./uploads}") String uploadDir) {
+    public FileStorageService(
+            @Value("${portfolio.storage.upload-dir:./uploads}") String uploadDir,
+            StoredFileRepository storedFileRepository) {
+        this.storedFileRepository = storedFileRepository;
         this.uploadLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
         try {
             Files.createDirectories(this.uploadLocation);
         } catch (IOException e) {
-            throw new RuntimeException("Could not initialize upload directory at " + uploadDir, e);
+            log.warn("Could not create local upload directory, will rely on database storage: {}", e.getMessage());
         }
     }
 
@@ -80,13 +88,68 @@ public class FileStorageService {
         }
         String uniqueFileName = UUID.randomUUID() + extension;
 
+        byte[] fileBytes;
+        try {
+            fileBytes = file.getBytes();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read uploaded file data", e);
+        }
+
+        // 1. Permanently store in PostgreSQL Cloud Database so restarts never lose files
+        try {
+            StoredFile storedFile = new StoredFile(
+                    null,
+                    uniqueFileName,
+                    originalFilename,
+                    detectedMimeType,
+                    file.getSize(),
+                    fileBytes,
+                    LocalDateTime.now()
+            );
+            storedFileRepository.save(storedFile);
+            log.info("File permanently saved to database: {} ({} bytes)", uniqueFileName, file.getSize());
+        } catch (Exception e) {
+            log.error("Failed to persist file in database: {}", e.getMessage(), e);
+        }
+
+        // 2. Also cache to local filesystem for high performance
         try {
             Path targetLocation = this.uploadLocation.resolve(uniqueFileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            log.info("File successfully saved: {} (detected MIME: {})", uniqueFileName, detectedMimeType);
-            return "/uploads/" + uniqueFileName;
+            Files.write(targetLocation, fileBytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            log.info("File successfully cached to disk: {}", uniqueFileName);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store file: " + uniqueFileName, e);
+            log.warn("Could not cache file to disk (will serve from database): {}", e.getMessage());
         }
+
+        return "/uploads/" + uniqueFileName;
+    }
+
+    public Optional<StoredFile> getStoredFile(String fileName) {
+        return storedFileRepository.findByFileName(fileName);
+    }
+
+    public record FilePayload(byte[] data, String contentType) {}
+
+    public FilePayload loadFilePayload(String fileName) throws IOException {
+        Path filePath = this.uploadLocation.resolve(fileName).normalize();
+        if (Files.exists(filePath) && Files.isReadable(filePath)) {
+            byte[] data = Files.readAllBytes(filePath);
+            String probeType = tika.detect(data, fileName);
+            return new FilePayload(data, probeType != null ? probeType : "application/octet-stream");
+        }
+
+        // Fallback to database
+        Optional<StoredFile> opt = storedFileRepository.findByFileName(fileName);
+        if (opt.isPresent()) {
+            StoredFile sf = opt.get();
+            byte[] data = sf.getFileData();
+            // restore to disk cache
+            try {
+                Files.write(filePath, data, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } catch (Exception ignored) {}
+            return new FilePayload(data, sf.getContentType());
+        }
+
+        throw new NoSuchFileException("File not found: " + fileName);
     }
 }

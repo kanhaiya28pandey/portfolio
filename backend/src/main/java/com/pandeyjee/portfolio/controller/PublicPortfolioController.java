@@ -19,21 +19,51 @@ public class PublicPortfolioController {
     private final PortfolioService portfolioService;
     private final ContactService contactService;
     private final com.pandeyjee.portfolio.service.AnalyticsService analyticsService;
+    private final org.springframework.core.env.Environment environment;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private javax.sql.DataSource dataSource;
 
     public PublicPortfolioController(
             PortfolioService portfolioService,
             ContactService contactService,
-            com.pandeyjee.portfolio.service.AnalyticsService analyticsService) {
+            com.pandeyjee.portfolio.service.AnalyticsService analyticsService,
+            org.springframework.core.env.Environment environment) {
         this.portfolioService = portfolioService;
         this.contactService = contactService;
         this.analyticsService = analyticsService;
+        this.environment = environment;
     }
 
     @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> getHealth() {
+    public ResponseEntity<Map<String, Object>> getHealth() {
+        String dbProduct = "Unknown";
+        String dbUrl = "Unknown";
+        if (dataSource != null) {
+            try (java.sql.Connection conn = dataSource.getConnection()) {
+                dbProduct = conn.getMetaData().getDatabaseProductName() + " " + conn.getMetaData().getDatabaseProductVersion();
+                String rawUrl = conn.getMetaData().getURL();
+                if (rawUrl != null) {
+                    // Sanitize any credentials
+                    if (rawUrl.contains("@")) {
+                        dbUrl = rawUrl.substring(rawUrl.indexOf("@") + 1);
+                    } else {
+                        dbUrl = rawUrl;
+                    }
+                }
+            } catch (Exception e) {
+                dbProduct = "Connection Error: " + e.getMessage();
+            }
+        }
+        String[] profiles = environment != null ? environment.getActiveProfiles() : new String[0];
+        String activeProfile = profiles.length > 0 ? String.join(", ", profiles) : "default";
+
         return ResponseEntity.ok(Map.of(
             "status", "UP",
             "service", "portfolio-backend",
+            "activeProfile", activeProfile,
+            "databaseProduct", dbProduct,
+            "databaseUrl", dbUrl,
             "timestamp", java.time.Instant.now().toString()
         ));
     }

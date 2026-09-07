@@ -96,22 +96,28 @@ public class DataInitializer implements CommandLineRunner {
             });
         }
 
-        // 3. Initialize & Sync Skills Ecosystem
-        syncSkillsEcosystem();
+        // 3. Initialize Skills Ecosystem (Seed only if clean database)
+        if (skillRepository.count() == 0) {
+            syncSkillsEcosystem();
+        } else {
+            log.info("Skills ecosystem already populated ({} skills present). Preserving user data.", skillRepository.count());
+        }
 
-        // 3.1 Initialize & Sync Projects Ecosystem
-        syncProjectsEcosystem();
+        // 3.1 Initialize Projects Ecosystem (Seed only if clean database)
+        if (projectRepository.count() == 0) {
+            syncProjectsEcosystem();
+        } else {
+            log.info("Projects ecosystem already populated ({} projects present). Preserving user data.", projectRepository.count());
+        }
 
-        // 3.2 Initialize & Sync Experience Ecosystem
-        syncExperienceEcosystem();
+        // 3.2 Initialize Experience Ecosystem (Seed only if clean database)
+        if (experienceRepository.count() == 0) {
+            syncExperienceEcosystem();
+        } else {
+            log.info("Experience ecosystem already populated ({} entries present). Preserving user data.", experienceRepository.count());
+        }
 
-        // 4. Initialize Achievements
-        achievementRepository.findAll().forEach(a -> {
-            if ("Projects Built".equals(a.getTitle()) || "Technologies Mastered".equals(a.getTitle()) || "Academic Status".equals(a.getTitle())) {
-                achievementRepository.delete(a);
-            }
-        });
-
+        // 4. Initialize Achievements (Seed only if clean database)
         if (achievementRepository.count() == 0) {
             log.info("Bootstrapping milestone achievements for Kanhaiya Pandey...");
             Achievement a1 = Achievement.builder()
@@ -140,13 +146,23 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             achievementRepository.save(a2);
             log.info("Bootstrapped 2 milestone achievements successfully.");
+        } else {
+            log.info("Achievements already populated ({} entries present). Preserving user data.", achievementRepository.count());
         }
 
-        // 4.1 Initialize & Sync Education Ecosystem
-        syncEducationEcosystem();
+        // 4.1 Initialize Education Ecosystem (Seed only if clean database)
+        if (educationRepository.count() == 0) {
+            syncEducationEcosystem();
+        } else {
+            log.info("Education ecosystem already populated ({} entries present). Preserving user data.", educationRepository.count());
+        }
 
-        // 4.2 Initialize & Sync Certificates Ecosystem
-        syncCertificatesEcosystem();
+        // 4.2 Initialize Certificates Ecosystem (Seed only if clean database)
+        if (certificateRepository.count() == 0) {
+            syncCertificatesEcosystem();
+        } else {
+            log.info("Certificates ecosystem already populated ({} entries present). Preserving user data.", certificateRepository.count());
+        }
 
         // 5. Initialize Site Settings
         Map<String, String> defaultSettings = new LinkedHashMap<>();
