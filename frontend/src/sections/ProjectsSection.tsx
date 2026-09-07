@@ -317,7 +317,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
                     <div className="p-5 sm:p-6 flex flex-col justify-between flex-1 space-y-4 text-left">
                       <div className="space-y-2">
                         <h3
-                          className={`font-bold text-lg sm:text-xl font-sans tracking-tight line-clamp-1 h-7 flex items-center transition-colors ${
+                          title={project.title}
+                          className={`font-bold text-base sm:text-lg lg:text-xl font-sans tracking-tight leading-snug line-clamp-2 min-h-[3rem] sm:min-h-[3.5rem] transition-colors ${
                             isDark
                               ? 'text-white group-hover:text-cyan-400'
                               : 'text-slate-900 group-hover:text-blue-600'
@@ -327,7 +328,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ projects }) =>
                         </h3>
 
                         <p
-                          className={`text-xs sm:text-sm font-sans leading-relaxed line-clamp-3 h-14 overflow-hidden ${
+                          className={`text-xs sm:text-sm font-sans leading-relaxed line-clamp-3 min-h-[3.5rem] sm:min-h-[3.75rem] overflow-hidden ${
                             isDark ? 'text-slate-300' : 'text-slate-600'
                           }`}
                         >

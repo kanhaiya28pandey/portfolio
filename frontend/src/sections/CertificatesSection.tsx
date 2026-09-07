@@ -9,7 +9,6 @@ import {
   ShieldCheck, 
   Eye, 
   ArrowUpRight, 
-  ExternalLink,
   Sparkles
 } from 'lucide-react';
 import type { Certificate } from '../types/portfolio';
@@ -20,6 +19,7 @@ interface CertificatesSectionProps {
 
 import { getCourseMeta, getCertificateCategory } from '../utils/certMeta';
 import { resolveAssetUrl } from '../utils/assetUrl';
+import { openDocument, downloadDocument, isPdfDocument, isImageDocument } from '../utils/documentViewer';
 export { getCourseMeta, getCertificateCategory };
 
 export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certificates }) => {
@@ -27,9 +27,6 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
   const [selectedFilter, setSelectedFilter] = useState<string>('ALL');
 
   if (!certificates || certificates.length === 0) return null;
-
-  const isPdf = (url?: string) => Boolean(url && url.toLowerCase().endsWith('.pdf'));
-  const isImage = (url?: string) => Boolean(url && /\.(jpg|jpeg|png|webp|avif|gif)$/i.test(url));
 
   // Dynamically compute active categories from actual uploaded certificates
   const { categoryCounts, filterOptions } = useMemo(() => {
@@ -296,7 +293,7 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
                 </div>
 
                 {/* Document View / Preview Box */}
-                {activeCert.thumbnailUrl || isImage(activeCert.credentialUrl) ? (
+                {activeCert.thumbnailUrl || isImageDocument(activeCert.credentialUrl) ? (
                   <div className="rounded-xl overflow-hidden border border-white/10 dark:border-white/10 light:border-slate-200 max-h-64 flex items-center justify-center bg-black/40">
                     <img
                       src={resolveAssetUrl(activeCert.thumbnailUrl) || resolveAssetUrl(activeCert.credentialUrl)}
@@ -304,18 +301,34 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
                       className="w-full h-full object-contain"
                     />
                   </div>
-                ) : isPdf(activeCert.credentialUrl) ? (
-                  <div className="rounded-xl p-5 bg-blue-950/30 dark:bg-blue-950/30 light:bg-blue-50 border border-blue-500/20 text-center space-y-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 mx-auto flex items-center justify-center">
-                      <FileText className="w-6 h-6" />
+                ) : isPdfDocument(activeCert.credentialUrl) ? (
+                  <div className="rounded-xl p-5 bg-gradient-to-br from-blue-950/40 via-indigo-950/30 to-purple-950/40 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-purple-950/40 light:bg-gradient-to-br light:from-blue-50 light:via-indigo-50 light:to-purple-50 border border-blue-500/30 dark:border-blue-500/30 light:border-blue-200 text-center space-y-3.5 shadow-inner">
+                    <div className="w-14 h-14 rounded-2xl bg-blue-500/15 border border-blue-500/30 text-cyan-400 dark:text-cyan-400 light:text-blue-600 mx-auto flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+                      <FileText className="w-7 h-7" />
                     </div>
-                    <div>
-                      <h4 className="text-xs font-mono font-bold text-slate-200 dark:text-slate-200 light:text-slate-800">
-                        Official PDF Certificate Document
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 dark:text-blue-400 light:text-blue-600 text-[10px] font-mono font-semibold uppercase">
+                        <CheckCircle className="w-3 h-3 text-emerald-400" />
+                        <span>Official PDF Certificate</span>
+                      </div>
+                      <h4 className="text-xs sm:text-sm font-mono font-bold text-slate-100 dark:text-slate-100 light:text-slate-800 line-clamp-2">
+                        {activeCert.title}
                       </h4>
-                      <p className="text-[11px] font-mono text-slate-400 dark:text-slate-400 light:text-slate-600 mt-0.5">
+                      <p className="text-[11px] font-mono text-slate-400 dark:text-slate-400 light:text-slate-600">
                         Authenticated credential file verified by {activeCert.issuingOrg}
                       </p>
+                    </div>
+
+                    <div className="pt-1 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => openDocument(activeCert.credentialUrl, activeCert.title)}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase tracking-wider bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 dark:text-cyan-300 light:bg-blue-600 light:hover:bg-blue-700 light:text-white border border-cyan-500/40 light:border-transparent transition-all shadow-sm cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View Document Inline</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </button>
                     </div>
                   </div>
                 ) : (
@@ -338,39 +351,43 @@ export const CertificatesSection: React.FC<CertificatesSectionProps> = ({ certif
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between gap-3 pt-3 border-t border-white/10 dark:border-white/10 light:border-slate-200 text-xs font-mono">
+              <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-white/10 dark:border-white/10 light:border-slate-200 text-xs font-mono">
                 <span className="text-slate-400 dark:text-slate-400 light:text-slate-500">
                   Year: {activeCert.issueDate}
                 </span>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                   <button
                     type="button"
                     onClick={() => setActiveCert(null)}
-                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-white/10 light:bg-slate-100 light:hover:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 transition-colors"
+                    className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-white/10 light:bg-slate-100 light:hover:bg-slate-200 text-slate-300 dark:text-slate-300 light:text-slate-700 transition-colors cursor-pointer"
                   >
                     Close
                   </button>
 
                   {activeCert.credentialUrl ? (
-                    <a
-                      href={resolveAssetUrl(activeCert.credentialUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold shadow-md transition-all"
-                    >
-                      {isPdf(activeCert.credentialUrl) ? (
-                        <>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => openDocument(activeCert.credentialUrl, activeCert.title)}
+                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold shadow-md transition-all cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View Document</span>
+                      </button>
+
+                      {isPdfDocument(activeCert.credentialUrl) && (
+                        <button
+                          type="button"
+                          onClick={() => downloadDocument(activeCert.credentialUrl, `${activeCert.title}.pdf`)}
+                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20 light:bg-slate-100 light:hover:bg-slate-200 text-slate-200 dark:text-slate-200 light:text-slate-700 border border-white/10 dark:border-white/10 light:border-slate-200 transition-all cursor-pointer"
+                          title="Download raw PDF"
+                        >
                           <Download className="w-3.5 h-3.5" />
-                          <span>Download PDF</span>
-                        </>
-                      ) : (
-                        <>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Open Credential</span>
-                        </>
+                          <span className="hidden sm:inline">Download</span>
+                        </button>
                       )}
-                    </a>
+                    </>
                   ) : (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-medium" title="Digital Credential Verification Pending • Record Verified">
                       <ShieldCheck className="w-3.5 h-3.5" />

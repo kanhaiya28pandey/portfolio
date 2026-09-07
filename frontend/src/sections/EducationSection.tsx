@@ -16,7 +16,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import type { Education, ExperienceCertificate } from '../types/portfolio';
-import { resolveAssetUrl } from '../utils/assetUrl';
+import { openDocument, downloadDocument } from '../utils/documentViewer';
 
 interface EducationSectionProps {
   educations: Education[];
@@ -692,20 +692,19 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations }
                       Close
                     </button>
 
-                    <a
-                      href={resolveAssetUrl(activeModalDoc.doc.fileUrl)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-mono font-bold shadow-lg transition-all"
+                    <button
+                      type="button"
+                      onClick={() => openDocument(activeModalDoc.doc.fileUrl, activeModalDoc.doc.title)}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-mono font-bold shadow-lg transition-all cursor-pointer"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>Open Document ↗</span>
-                    </a>
+                    </button>
 
-                    <a
-                      href={resolveAssetUrl(activeModalDoc.doc.fileUrl)}
-                      download
-                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all ${
+                    <button
+                      type="button"
+                      onClick={() => downloadDocument(activeModalDoc.doc.fileUrl, `${activeModalDoc.doc.title}.pdf`)}
+                      className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
                         isDark
                           ? 'bg-white/10 hover:bg-white/20 text-white'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'
@@ -713,7 +712,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations }
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Download</span>
-                    </a>
+                    </button>
                   </div>
                 </motion.div>
               </div>
