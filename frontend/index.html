@@ -5,7 +5,7 @@
     <script>
       (function () {
         try {
-          var saved = localStorage.getItem('kp_portfolio_theme');
+          var saved = localStorage.getItem('kp_portfolio_theme_v2');
           if (saved === 'light') {
             document.documentElement.classList.add('light');
             document.documentElement.classList.remove('dark');
@@ -15,7 +15,7 @@
             document.documentElement.classList.remove('light');
             document.documentElement.style.colorScheme = 'dark';
             if (!saved) {
-              localStorage.setItem('kp_portfolio_theme', 'dark');
+              localStorage.setItem('kp_portfolio_theme_v2', 'dark');
             }
           }
         } catch (e) {

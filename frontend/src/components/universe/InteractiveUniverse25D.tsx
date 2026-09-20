@@ -49,13 +49,22 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
   // Offscreen visibility tracking to pause RAF loop and save mobile battery/CPU
   const isVisibleRef = useRef(true);
   const isDraggingRef = useRef(false);
-  isDraggingRef.current = isDragging;
   const hoveredSkillIdRef = useRef<number | null>(null);
-  hoveredSkillIdRef.current = hoveredSkillId;
   const selectedSkillRef = useRef<Skill | null>(null);
-  selectedSkillRef.current = selectedSkill;
   const currentSpeedRef = useRef<number>(9.0);
   const lastTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    isDraggingRef.current = isDragging;
+  }, [isDragging]);
+
+  useEffect(() => {
+    hoveredSkillIdRef.current = hoveredSkillId;
+  }, [hoveredSkillId]);
+
+  useEffect(() => {
+    selectedSkillRef.current = selectedSkill;
+  }, [selectedSkill]);
 
   useEffect(() => {
     if (!containerRef.current || typeof IntersectionObserver === 'undefined') return;
@@ -84,7 +93,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       const delta = Math.min((time - lastTimeRef.current) / 1000, 0.05);
       lastTimeRef.current = time;
 
-      if (isVisibleRef.current && !isDraggingRef.current) {
+      if (!isDraggingRef.current) {
         // Smoothly interpolate speed: gently decelerates to 3.0 deg/sec on hover/selection for inspection, 9.0 deg/sec in normal orbit
         const targetSpeed =
           hoveredSkillIdRef.current !== null || selectedSkillRef.current !== null ? 3.0 : 9.0;
@@ -534,20 +543,20 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       <style>{`
         @keyframes cosmicMeteor1 {
           0% { transform: translate(550px, -80px) rotate(-35deg) scaleX(0); opacity: 0; }
-          12% { opacity: 0.95; transform: translate(320px, 60px) rotate(-35deg) scaleX(1); }
-          28% { transform: translate(-80px, 320px) rotate(-35deg) scaleX(0.7); opacity: 0; }
+          8% { opacity: 0.95; transform: translate(350px, 40px) rotate(-35deg) scaleX(1); }
+          22% { transform: translate(-80px, 320px) rotate(-35deg) scaleX(0.7); opacity: 0; }
           100% { transform: translate(-80px, 320px) rotate(-35deg) scaleX(0); opacity: 0; }
         }
         @keyframes cosmicMeteor2 {
           0% { transform: translate(650px, -30px) rotate(-32deg) scaleX(0); opacity: 0; }
-          10% { opacity: 0.9; transform: translate(400px, 140px) rotate(-32deg) scaleX(1); }
-          26% { transform: translate(60px, 380px) rotate(-32deg) scaleX(0.6); opacity: 0; }
+          7% { opacity: 0.9; transform: translate(430px, 120px) rotate(-32deg) scaleX(1); }
+          20% { transform: translate(60px, 380px) rotate(-32deg) scaleX(0.6); opacity: 0; }
           100% { transform: translate(60px, 380px) rotate(-32deg) scaleX(0); opacity: 0; }
         }
         @keyframes cosmicMeteor3 {
           0% { transform: translate(720px, 80px) rotate(-38deg) scaleX(0); opacity: 0; }
-          14% { opacity: 0.85; transform: translate(440px, 270px) rotate(-38deg) scaleX(1); }
-          30% { transform: translate(100px, 510px) rotate(-38deg) scaleX(0.65); opacity: 0; }
+          9% { opacity: 0.85; transform: translate(460px, 250px) rotate(-38deg) scaleX(1); }
+          24% { transform: translate(100px, 510px) rotate(-38deg) scaleX(0.65); opacity: 0; }
           100% { transform: translate(100px, 510px) rotate(-38deg) scaleX(0); opacity: 0; }
         }
         @keyframes asteroidDriftA {
@@ -572,6 +581,28 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
           50% { transform: translate(-30px, 20px); opacity: 0.9; }
           100% { transform: translate(0px, 0px); opacity: 0.4; }
         }
+        @keyframes planetFloatSlow1 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          35% { transform: translate(40px, -22px) scale(1.06); }
+          70% { transform: translate(15px, 25px) scale(0.96); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes planetFloatSlow2 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          40% { transform: translate(-45px, 30px) scale(0.94); }
+          75% { transform: translate(-18px, -18px) scale(1.05); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes planetFloatSlow3 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(32px, -28px) scale(1.05); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes planetFloatSlow4 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          45% { transform: translate(-28px, -24px) scale(0.95); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
       `}</style>
 
       {/* 1. Deep Space Nebula & Ambient Cosmic Starfield Background (Moving behind the universe) */}
@@ -592,25 +623,25 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
           style={{ background: 'radial-gradient(circle, rgba(29, 78, 216, 0.22) 0%, transparent 70%)' }}
         />
 
-        {/* Real Universe Passing Meteorites / Shooting Stars */}
+        {/* Real Universe Passing Meteorites / Shooting Stars (Always moving, never stuck as a static line) */}
         <div
-          className="absolute top-0 right-1/4 w-36 h-[2px] rounded-full bg-gradient-to-r from-transparent via-cyan-400 to-white shadow-[0_0_12px_#38bdf8] pointer-events-none"
-          style={{ animation: 'cosmicMeteor1 4.2s cubic-bezier(0.25, 1, 0.5, 1) infinite' }}
+          className="absolute top-0 right-1/4 w-36 h-[2px] rounded-full bg-gradient-to-r from-transparent via-cyan-400 to-white shadow-[0_0_12px_#38bdf8] pointer-events-none opacity-0"
+          style={{ animation: 'cosmicMeteor1 5.5s cubic-bezier(0.25, 1, 0.5, 1) infinite -1.5s', opacity: 0 }}
         />
         <div
-          className="absolute top-10 right-1/3 w-28 h-[1.8px] rounded-full bg-gradient-to-r from-transparent via-purple-400 to-white shadow-[0_0_10px_#a855f7] pointer-events-none"
-          style={{ animation: 'cosmicMeteor2 6.5s cubic-bezier(0.25, 1, 0.5, 1) infinite 1.8s' }}
+          className="absolute top-10 right-1/3 w-28 h-[1.8px] rounded-full bg-gradient-to-r from-transparent via-purple-400 to-white shadow-[0_0_10px_#a855f7] pointer-events-none opacity-0"
+          style={{ animation: 'cosmicMeteor2 7.0s cubic-bezier(0.25, 1, 0.5, 1) infinite -3.5s', opacity: 0 }}
         />
         <div
-          className="absolute top-20 right-10 w-32 h-[2px] rounded-full bg-gradient-to-r from-transparent via-amber-300 to-white shadow-[0_0_10px_#f59e0b] pointer-events-none"
-          style={{ animation: 'cosmicMeteor3 5.5s cubic-bezier(0.25, 1, 0.5, 1) infinite 3.2s' }}
+          className="absolute top-20 right-10 w-32 h-[2px] rounded-full bg-gradient-to-r from-transparent via-amber-300 to-white shadow-[0_0_10px_#f59e0b] pointer-events-none opacity-0"
+          style={{ animation: 'cosmicMeteor3 6.0s cubic-bezier(0.25, 1, 0.5, 1) infinite -4.2s', opacity: 0 }}
         />
 
-        {/* Real Universe Passing Space Stones / Tumbling Asteroids */}
+        {/* Real Universe Passing Space Stones / Tumbling Asteroids (Active immediately with zero delay freeze) */}
         {/* Asteroid 1: Rocky Charcoal Asteroid */}
         <div
           className="absolute top-0 left-0 w-8 h-8 pointer-events-none opacity-80"
-          style={{ animation: 'asteroidDriftA 26s linear infinite' }}
+          style={{ animation: 'asteroidDriftA 28s linear infinite -9s' }}
         >
           <svg viewBox="0 0 40 40" className="w-full h-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
             <polygon points="12,4 28,6 36,18 32,32 18,36 6,26 4,14" fill="#334155" stroke="#64748B" strokeWidth="1.2" />
@@ -623,7 +654,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
         {/* Asteroid 2: Cratered Stone Asteroid */}
         <div
           className="absolute top-0 left-0 w-6 h-6 pointer-events-none opacity-75"
-          style={{ animation: 'asteroidDriftB 32s linear infinite 4s' }}
+          style={{ animation: 'asteroidDriftB 34s linear infinite -18s' }}
         >
           <svg viewBox="0 0 30 30" className="w-full h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
             <polygon points="10,2 22,5 28,15 22,26 8,28 3,18 5,8" fill="#475569" stroke="#94A3B8" strokeWidth="1" />
@@ -635,7 +666,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
         {/* Asteroid 3: Fast Micro-Meteorite Stone */}
         <div
           className="absolute top-0 left-0 w-4 h-4 pointer-events-none opacity-65"
-          style={{ animation: 'asteroidDriftC 18s linear infinite 8s' }}
+          style={{ animation: 'asteroidDriftC 20s linear infinite -11s' }}
         >
           <svg viewBox="0 0 20 20" className="w-full h-full drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
             <polygon points="6,2 16,4 18,14 10,18 2,12 3,6" fill="#64748B" stroke="#CBD5E1" strokeWidth="0.8" />
@@ -645,15 +676,15 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
         {/* Moving Background Stars / Cosmic Dust drifting behind */}
         <div
           className="absolute top-24 left-[35%] w-2 h-2 rounded-full bg-cyan-300 pointer-events-none shadow-[0_0_8px_#38bdf8]"
-          style={{ animation: 'driftingStarA 8s ease-in-out infinite' }}
+          style={{ animation: 'driftingStarA 8s ease-in-out infinite -2s' }}
         />
         <div
           className="absolute bottom-32 right-[30%] w-2 h-2 rounded-full bg-purple-300 pointer-events-none shadow-[0_0_8px_#c084fc]"
-          style={{ animation: 'driftingStarB 10s ease-in-out infinite 2s' }}
+          style={{ animation: 'driftingStarB 10s ease-in-out infinite -5s' }}
         />
         <div
           className="absolute top-40 right-[20%] w-1.5 h-1.5 rounded-full bg-amber-300 pointer-events-none shadow-[0_0_6px_#f59e0b]"
-          style={{ animation: 'driftingStarA 12s ease-in-out infinite 4s' }}
+          style={{ animation: 'driftingStarA 12s ease-in-out infinite -8s' }}
         />
 
         {/* Distant Starfield & Micro Coordinates */}
@@ -682,10 +713,27 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
         <div className="absolute top-44 left-[15%] text-xs animate-pulse opacity-60 text-purple-400">✦</div>
         <div className="absolute bottom-36 right-[22%] text-xs animate-pulse opacity-70 text-amber-300">✦</div>
 
-        {/* Distant Celestial Moons / Small Planets */}
-        <div className="absolute top-28 left-[24%] w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 via-orange-600 to-amber-950 shadow-[0_0_12px_rgba(245,158,11,0.5)] opacity-80 pointer-events-none" />
-        <div className="absolute top-36 right-[14%] w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 via-indigo-700 to-slate-950 shadow-[0_0_20px_rgba(168,85,247,0.4)] opacity-75 pointer-events-none" />
-        <div className="absolute bottom-20 left-[51%] w-4 h-4 rounded-full bg-gradient-to-br from-amber-600 to-slate-900 shadow-[0_0_8px_rgba(217,119,6,0.4)] opacity-70 pointer-events-none" />
+        {/* Distant Celestial Moons / Small Planets Moving Gracefully Behind the Universe */}
+        {/* Planet 1: Amber Gas Giant Moon */}
+        <div
+          className="absolute top-24 left-[22%] w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 via-orange-600 to-amber-950 shadow-[0_0_14px_rgba(245,158,11,0.55)] opacity-85 pointer-events-none"
+          style={{ animation: 'planetFloatSlow1 42s ease-in-out infinite -14s' }}
+        />
+        {/* Planet 2: Purple-Indigo Ringed World */}
+        <div
+          className="absolute top-32 right-[15%] w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 via-indigo-700 to-slate-950 shadow-[0_0_22px_rgba(168,85,247,0.45)] opacity-80 pointer-events-none"
+          style={{ animation: 'planetFloatSlow2 52s ease-in-out infinite -24s' }}
+        />
+        {/* Planet 3: Bronze Terrestrial Planet */}
+        <div
+          className="absolute bottom-24 left-[48%] w-4 h-4 rounded-full bg-gradient-to-br from-amber-600 via-orange-700 to-slate-900 shadow-[0_0_10px_rgba(217,119,6,0.45)] opacity-75 pointer-events-none"
+          style={{ animation: 'planetFloatSlow3 36s ease-in-out infinite -8s' }}
+        />
+        {/* Planet 4: Cyan Ice World */}
+        <div
+          className="absolute top-44 left-[10%] w-5 h-5 rounded-full bg-gradient-to-br from-cyan-300 via-blue-600 to-slate-950 shadow-[0_0_12px_rgba(6,182,212,0.4)] opacity-70 pointer-events-none"
+          style={{ animation: 'planetFloatSlow4 46s ease-in-out infinite -18s' }}
+        />
       </div>
 
       {/* 2. Interactive Scalable 3D Constellation Canvas (No Zoom) */}
