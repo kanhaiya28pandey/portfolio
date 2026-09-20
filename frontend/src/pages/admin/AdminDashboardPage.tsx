@@ -43,6 +43,7 @@ import {
   Sun,
   Moon,
   FileDown,
+  Heart,
   Filter,
   Calendar,
   Search,
@@ -208,6 +209,7 @@ export const AdminDashboardPage: React.FC = () => {
     site_title: 'Kanhaiya | techwithkanhaiya',
     meta_description: 'Official portfolio of Kanhaiya Pandey - Full-Stack Developer & Software Engineer.',
     support_coffee_url: 'pandey123@okhdfcbank',
+    show_support_button: 'false',
     availability_badge: 'Available for Full-Stack & AI Roles',
     dsa_solved_count: '150+',
     github_url: 'https://github.com/kanhaiya28pandey/',
@@ -7703,6 +7705,57 @@ export const AdminDashboardPage: React.FC = () => {
                       placeholder="Kanhaiya | techwithkanhaiya"
                       className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-200 font-mono text-xs focus:outline-none focus:border-purple-500"
                     />
+                  </div>
+
+                  {/* Support Button Visibility Toggle */}
+                  <div className="p-4 rounded-xl bg-white/5 dark:bg-white/5 light:bg-slate-50 border border-white/10 dark:border-white/10 light:border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <h4 className="text-xs font-bold font-mono text-white dark:text-white light:text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                          <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400/20" />
+                          Support / UPI Button Display
+                        </h4>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-400 light:text-slate-600 mt-0.5">
+                          Turn ON or OFF the "Support ❤️" button across the top navbar (desktop, tablet, mobile drawer) and footer.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSettings({
+                            ...settings,
+                            show_support_button: settings.show_support_button === 'true' ? 'false' : 'true',
+                          })
+                        }
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          settings.show_support_button === 'true' ? 'bg-amber-500' : 'bg-slate-700 dark:bg-slate-700 light:bg-slate-300'
+                        }`}
+                        role="switch"
+                        aria-checked={settings.show_support_button === 'true'}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                            settings.show_support_button === 'true' ? 'translate-x-5' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] font-mono">
+                      <span
+                        className={`px-2 py-0.5 rounded-md font-semibold ${
+                          settings.show_support_button === 'true'
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                        }`}
+                      >
+                        {settings.show_support_button === 'true' ? 'VISIBLE (ACTIVE)' : 'HIDDEN (OFF)'}
+                      </span>
+                      <span className="text-slate-400 dark:text-slate-400 light:text-slate-500">
+                        {settings.show_support_button === 'true'
+                          ? 'Button is active. Visible across navigation bar and footer.'
+                          : 'Button is hidden. Navbar and footer automatically adjust their layouts.'}
+                      </span>
+                    </div>
                   </div>
 
                   <div>

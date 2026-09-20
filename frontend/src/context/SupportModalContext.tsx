@@ -4,6 +4,7 @@ import { fetchPortfolioOverview } from '../services/api';
 
 interface SupportModalContextType {
   isSupportOpen: boolean;
+  showSupportButton: boolean;
   openSupport: () => void;
   closeSupport: () => void;
 }
@@ -12,6 +13,7 @@ const SupportModalContext = createContext<SupportModalContextType | undefined>(u
 
 export const SupportModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [showSupportButton, setShowSupportButton] = useState(false);
   const [supportData, setSupportData] = useState<{ coffeeUrl?: string; fullName?: string }>({
     coffeeUrl: 'pandey123@okhdfcbank',
     fullName: 'Kanhaiya Pandey',
@@ -22,6 +24,7 @@ export const SupportModalProvider: React.FC<{ children: React.ReactNode }> = ({ 
     fetchPortfolioOverview()
       .then((overview) => {
         if (isMounted && overview) {
+          setShowSupportButton(overview.settings?.show_support_button === 'true');
           setSupportData({
             coffeeUrl:
               overview.settings?.support_coffee_url ||
@@ -44,7 +47,9 @@ export const SupportModalProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const closeSupport = () => setIsSupportOpen(false);
 
   return (
-    <SupportModalContext.Provider value={{ isSupportOpen, openSupport, closeSupport }}>
+    <SupportModalContext.Provider
+      value={{ isSupportOpen, showSupportButton, openSupport, closeSupport }}
+    >
       {children}
       <SupportModal
         isOpen={isSupportOpen}

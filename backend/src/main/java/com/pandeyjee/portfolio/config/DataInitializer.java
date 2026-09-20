@@ -169,6 +169,7 @@ public class DataInitializer implements CommandLineRunner {
         defaultSettings.put("site_title", "Kanhaiya | techwithkanhaiya");
         defaultSettings.put("meta_description", "Official portfolio of Kanhaiya Pandey - Full Stack Developer & Software Engineer.");
         defaultSettings.put("support_coffee_url", "https://buymeacoffee.com");
+        defaultSettings.put("show_support_button", "false");
         defaultSettings.put("availability_badge", "Available for Full-Stack & AI Roles");
         defaultSettings.put("dsa_solved_count", "150+");
         defaultSettings.put("github_url", "https://github.com/kanhaiya28pandey/");

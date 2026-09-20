@@ -44,15 +44,27 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
   const [rotationAngle, setRotationAngle] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
+  const touchStartRef = useRef({ x: 0, y: 0 });
 
   // Offscreen visibility tracking to pause RAF loop and save mobile battery/CPU
   const isVisibleRef = useRef(true);
+  const isDraggingRef = useRef(false);
+  isDraggingRef.current = isDragging;
+  const hoveredSkillIdRef = useRef<number | null>(null);
+  hoveredSkillIdRef.current = hoveredSkillId;
+  const selectedSkillRef = useRef<Skill | null>(null);
+  selectedSkillRef.current = selectedSkill;
+  const currentSpeedRef = useRef<number>(9.0);
+  const lastTimeRef = useRef<number>(0);
 
   useEffect(() => {
     if (!containerRef.current || typeof IntersectionObserver === 'undefined') return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisibleRef.current = entry.isIntersecting;
+        if (entry.isIntersecting) {
+          lastTimeRef.current = performance.now();
+        }
       },
       { rootMargin: '120px 0px' }
     );
@@ -60,30 +72,25 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
     return () => observer.disconnect();
   }, []);
 
-  // Continuous Cinematic Orbital Motion Clock - Moves continuously at all times
+  // Continuous Cinematic Orbital Motion Clock - Never pauses, never stutters, never resets
   useEffect(() => {
     let animationFrameId: number;
-    let lastTime = performance.now();
-    let lastRenderTime = performance.now();
-
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-    // Desktop runs at 60fps, mobile throttled gracefully to ~40fps for high smoothness & battery efficiency
-    const minFrameInterval = isMobile ? 24 : 16;
 
     const animate = (time: number) => {
-      const delta = (time - lastTime) / 1000;
-      lastTime = time;
+      if (lastTimeRef.current === 0) {
+        lastTimeRef.current = time;
+      }
+      // Cap delta time to 0.05s (50ms) to guarantee smooth, continuous progression
+      const delta = Math.min((time - lastTimeRef.current) / 1000, 0.05);
+      lastTimeRef.current = time;
 
-      // Moves continuously whenever visible in viewport, whether scrolling or stopped
-      if (
-        isVisibleRef.current &&
-        !isDragging &&
-        time - lastRenderTime >= minFrameInterval
-      ) {
-        lastRenderTime = time;
-        // Cosmic rotation (11.5 deg/sec); gracefully slows to 3.8 deg/sec on hover/selection
-        const speed = hoveredSkillId || selectedSkill ? 3.8 : 11.5;
-        setRotationAngle((prev) => (prev + delta * speed) % 360);
+      if (isVisibleRef.current && !isDraggingRef.current) {
+        // Smoothly interpolate speed: gently decelerates to 3.0 deg/sec on hover/selection for inspection, 9.0 deg/sec in normal orbit
+        const targetSpeed =
+          hoveredSkillIdRef.current !== null || selectedSkillRef.current !== null ? 3.0 : 9.0;
+        currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * 0.08;
+
+        setRotationAngle((prev) => (prev + delta * currentSpeedRef.current) % 360);
       }
 
       animationFrameId = requestAnimationFrame(animate);
@@ -91,13 +98,14 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
     animationFrameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isDragging, hoveredSkillId, selectedSkill]);
+  }, []);
 
   // 3 Elliptical Orbit Radii (rx, ry) calibrated for widescreen perspective
+  // Synchronized speedMultiplier (1.0) ensures coordinates remain geometrically locked and stable
   const ORBIT_CONFIGS = [
-    { rx: 185, ry: 100, speedMultiplier: 1.18 },  // Inner Orbit
-    { rx: 295, ry: 160, speedMultiplier: 1.0 },   // Middle Orbit
-    { rx: 405, ry: 220, speedMultiplier: 0.82 },  // Outer Orbit
+    { rx: 185, ry: 100, speedMultiplier: 1.0 }, // Inner Orbit
+    { rx: 295, ry: 160, speedMultiplier: 1.0 }, // Middle Orbit
+    { rx: 405, ry: 220, speedMultiplier: 1.0 }, // Outer Orbit
   ];
 
   // Scattered & Interleaved Distribution: Categories thoroughly mixed across all 3 orbits
@@ -217,8 +225,32 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
   const handleMouseUp = () => setIsDragging(false);
 
-  const rotateLeft = () => setRotationAngle((prev) => (prev - 35 + 360) % 360);
-  const rotateRight = () => setRotationAngle((prev) => (prev + 35) % 360);
+  // Touch Drag Handlers (Mobile & Tablet)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = touch.clientY - touchStartRef.current.y;
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+
+    setRotationAngle((prev) => (prev - dx * 0.38 + 360) % 360);
+    setPanOffset((prev) => ({
+      x: Math.max(-45, Math.min(45, prev.x + dx * 0.08)),
+      y: Math.max(-30, Math.min(30, prev.y + dy * 0.08)),
+    }));
+  };
+
+  const handleTouchEnd = () => setIsDragging(false);
+
+  const rotateLeft = () => setRotationAngle((prev) => (prev - 30 + 360) % 360);
+  const rotateRight = () => setRotationAngle((prev) => (prev + 30) % 360);
 
   const resetView = () => {
     setPanOffset({ x: 0, y: 0 });
@@ -343,7 +375,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
         onMouseLeave={() => onHoverSkill(null)}
         style={{
           opacity: finalOpacity,
-          transition: 'opacity 0.25s ease-out, transform 0.25s ease-out',
+          transition: 'opacity 0.25s ease-out',
         }}
       >
         <g>
@@ -487,6 +519,10 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
       style={{ touchAction: 'pan-y' }}
       className={`relative w-full h-[480px] sm:h-[520px] lg:h-[560px] rounded-2xl overflow-hidden select-none cursor-grab active:cursor-grabbing touch-pan-y transition-colors duration-300 ${
         isDark
@@ -494,41 +530,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
           : 'bg-[#050B1E] border-2 border-slate-300/80 shadow-[0_20px_50px_rgba(15,23,42,0.18)]'
       } ${className}`}
     >
-      {/* CSS Keyframes for Real Universe Cosmic Movement */}
-      <style>{`
-        @keyframes cosmicMeteor1 {
-          0% { transform: translate(500px, -100px) rotate(-35deg) scaleX(0); opacity: 0; }
-          12% { opacity: 1; transform: translate(280px, 40px) rotate(-35deg) scaleX(1); }
-          28% { transform: translate(-80px, 280px) rotate(-35deg) scaleX(0.7); opacity: 0; }
-          100% { transform: translate(-80px, 280px) rotate(-35deg) scaleX(0); opacity: 0; }
-        }
-        @keyframes cosmicMeteor2 {
-          0% { transform: translate(600px, -40px) rotate(-32deg) scaleX(0); opacity: 0; }
-          10% { opacity: 0.95; transform: translate(360px, 120px) rotate(-32deg) scaleX(1); }
-          26% { transform: translate(40px, 360px) rotate(-32deg) scaleX(0.6); opacity: 0; }
-          100% { transform: translate(40px, 360px) rotate(-32deg) scaleX(0); opacity: 0; }
-        }
-        @keyframes cosmicMeteor3 {
-          0% { transform: translate(680px, 60px) rotate(-38deg) scaleX(0); opacity: 0; }
-          14% { opacity: 0.85; transform: translate(400px, 250px) rotate(-38deg) scaleX(1); }
-          30% { transform: translate(80px, 490px) rotate(-38deg) scaleX(0.65); opacity: 0; }
-          100% { transform: translate(80px, 490px) rotate(-38deg) scaleX(0); opacity: 0; }
-        }
-        @keyframes asteroidDriftA {
-          0% { transform: translate(-100px, 60px) rotate(0deg); }
-          100% { transform: translate(1060px, 130px) rotate(360deg); }
-        }
-        @keyframes asteroidDriftB {
-          0% { transform: translate(1050px, 430px) rotate(360deg); }
-          100% { transform: translate(-120px, 360px) rotate(0deg); }
-        }
-        @keyframes asteroidDriftC {
-          0% { transform: translate(250px, -60px) rotate(0deg); }
-          100% { transform: translate(750px, 620px) rotate(540deg); }
-        }
-      `}</style>
-
-      {/* 1. Deep Space Nebula, Meteors & Ambient Cosmic Background */}
+      {/* 1. Deep Space Nebula & Ambient Cosmic Starfield Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Soft Violet Nebula top-left */}
         <div
@@ -545,56 +547,6 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
           className="absolute -bottom-20 -right-20 w-[460px] h-[460px] rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(29, 78, 216, 0.22) 0%, transparent 70%)' }}
         />
-
-        {/* Real Universe Passing Meteorites / Shooting Stars */}
-        <div
-          className="absolute top-0 right-1/4 w-36 h-[2px] rounded-full bg-gradient-to-r from-transparent via-cyan-400 to-white shadow-[0_0_12px_#38bdf8] pointer-events-none"
-          style={{ animation: 'cosmicMeteor1 4.2s cubic-bezier(0.25, 1, 0.5, 1) infinite' }}
-        />
-        <div
-          className="absolute top-10 right-1/3 w-28 h-[1.8px] rounded-full bg-gradient-to-r from-transparent via-purple-400 to-white shadow-[0_0_10px_#a855f7] pointer-events-none"
-          style={{ animation: 'cosmicMeteor2 6.5s cubic-bezier(0.25, 1, 0.5, 1) infinite 1.8s' }}
-        />
-        <div
-          className="absolute top-20 right-10 w-32 h-[2px] rounded-full bg-gradient-to-r from-transparent via-amber-300 to-white shadow-[0_0_10px_#f59e0b] pointer-events-none"
-          style={{ animation: 'cosmicMeteor3 5.5s cubic-bezier(0.25, 1, 0.5, 1) infinite 3.2s' }}
-        />
-
-        {/* Real Universe Passing Space Stones / Tumbling Asteroids */}
-        {/* Asteroid 1: Rocky Charcoal Asteroid */}
-        <div
-          className="absolute top-0 left-0 w-8 h-8 pointer-events-none opacity-80"
-          style={{ animation: 'asteroidDriftA 26s linear infinite' }}
-        >
-          <svg viewBox="0 0 40 40" className="w-full h-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
-            <polygon points="12,4 28,6 36,18 32,32 18,36 6,26 4,14" fill="#334155" stroke="#64748B" strokeWidth="1.2" />
-            <polygon points="12,4 22,14 18,36 6,26" fill="#1E293B" opacity="0.6" />
-            <circle cx="16" cy="18" r="2.5" fill="#0F172A" />
-            <circle cx="26" cy="24" r="1.5" fill="#0F172A" />
-          </svg>
-        </div>
-
-        {/* Asteroid 2: Cratered Stone Asteroid */}
-        <div
-          className="absolute top-0 left-0 w-6 h-6 pointer-events-none opacity-75"
-          style={{ animation: 'asteroidDriftB 32s linear infinite 4s' }}
-        >
-          <svg viewBox="0 0 30 30" className="w-full h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
-            <polygon points="10,2 22,5 28,15 22,26 8,28 3,18 5,8" fill="#475569" stroke="#94A3B8" strokeWidth="1" />
-            <polygon points="10,2 18,12 8,28 3,18" fill="#0F172A" opacity="0.5" />
-            <circle cx="14" cy="16" r="2" fill="#020617" />
-          </svg>
-        </div>
-
-        {/* Asteroid 3: Fast Micro-Meteorite Stone */}
-        <div
-          className="absolute top-0 left-0 w-4 h-4 pointer-events-none opacity-65"
-          style={{ animation: 'asteroidDriftC 18s linear infinite 8s' }}
-        >
-          <svg viewBox="0 0 20 20" className="w-full h-full drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
-            <polygon points="6,2 16,4 18,14 10,18 2,12 3,6" fill="#64748B" stroke="#CBD5E1" strokeWidth="0.8" />
-          </svg>
-        </div>
 
         {/* Distant Starfield & Micro Coordinates */}
         <div
@@ -816,21 +768,6 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
               className="opacity-95"
             />
           ))}
-
-          {/* Cosmic Energy Particles running continuously in orbits */}
-          {ORBIT_CONFIGS.map((conf, idx) => {
-            const orbAngle = (rotationAngle * (conf.speedMultiplier * 2.2) + idx * 120) % 360;
-            const orbRad = (orbAngle * Math.PI) / 180;
-            const orbX = CENTER_X + conf.rx * Math.cos(orbRad);
-            const orbY = CENTER_Y - conf.ry * Math.sin(orbRad);
-            const orbColor = idx === 0 ? '#00F0FF' : idx === 1 ? '#C084FC' : '#F59E0B';
-            return (
-              <g key={`energy-particle-${idx}`} transform={`translate(${orbX}, ${orbY})`}>
-                <circle cx="0" cy="0" r="4.5" fill={orbColor} />
-                <circle cx="0" cy="0" r="2" fill="#FFFFFF" />
-              </g>
-            );
-          })}
 
           {/* ======================================================================= */}
           {/* LAYER 5: FOCUS LASER BEAM (Connecting Selected Node to KP Core)        */}

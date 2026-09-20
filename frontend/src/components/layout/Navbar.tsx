@@ -23,7 +23,7 @@ const BASE_NAV_ITEMS: NavItem[] = [
 ];
 
 export const Navbar: React.FC = () => {
-  const { openSupport } = useSupportModal();
+  const { openSupport, showSupportButton } = useSupportModal();
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -312,17 +312,19 @@ export const Navbar: React.FC = () => {
         {/* Right: Actions (Support Me + Theme Toggle + Let's Connect) for Large Screens */}
         <div className="hidden lg:flex items-center gap-2 xl:gap-2.5 flex-shrink-0 flex-nowrap">
           {/* Support Me / Direct UPI */}
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.95 }}
-            type="button"
-            onClick={openSupport}
-            className="group flex-shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-[11px] xl:text-xs font-semibold rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 light:border-amber-300/80 hover:bg-amber-500/20 hover:border-amber-400 transition-all duration-300 hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] cursor-pointer"
-            title="Support via UPI"
-          >
-            <Heart className="w-3.5 h-3.5 flex-shrink-0 transition-transform group-hover:scale-110 text-rose-400 fill-rose-400/20" />
-            <span className="whitespace-nowrap">Support ❤️</span>
-          </motion.button>
+          {showSupportButton && (
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={openSupport}
+              className="group flex-shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 text-[11px] xl:text-xs font-semibold rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 light:border-amber-300/80 hover:bg-amber-500/20 hover:border-amber-400 transition-all duration-300 hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] cursor-pointer"
+              title="Support via UPI"
+            >
+              <Heart className="w-3.5 h-3.5 flex-shrink-0 transition-transform group-hover:scale-110 text-rose-400 fill-rose-400/20" />
+              <span className="whitespace-nowrap">Support ❤️</span>
+            </motion.button>
+          )}
 
           {/* Animated Theme Toggle */}
           <div className="flex-shrink-0">
@@ -344,18 +346,20 @@ export const Navbar: React.FC = () => {
 
         {/* Tablet & Mobile Header Right: Support (on tablet) + Theme Toggle + Hamburger Toggle */}
         <div className="flex lg:hidden items-center gap-2 flex-shrink-0">
-          {/* Support Button (visible on tablet, hidden on tiny phone to conserve space) */}
-          <motion.button
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.95 }}
-            type="button"
-            onClick={openSupport}
-            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 light:border-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer touch-manipulation"
-            title="Support via UPI"
-          >
-            <Heart className="w-3.5 h-3.5 flex-shrink-0 text-rose-400 fill-rose-400/20" />
-            <span className="whitespace-nowrap">Support ❤️</span>
-          </motion.button>
+          {/* Support Button (visible on tablet when enabled, hidden on tiny phone to conserve space) */}
+          {showSupportButton && (
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.95 }}
+              type="button"
+              onClick={openSupport}
+              className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 light:border-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer touch-manipulation"
+              title="Support via UPI"
+            >
+              <Heart className="w-3.5 h-3.5 flex-shrink-0 text-rose-400 fill-rose-400/20" />
+              <span className="whitespace-nowrap">Support ❤️</span>
+            </motion.button>
+          )}
 
           <ThemeToggle />
 
@@ -403,21 +407,23 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div className="pt-3 border-t border-white/10 light:border-slate-200 flex flex-row items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  openSupport();
-                  setMobileMenuOpen(false);
-                }}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 font-semibold text-xs whitespace-nowrap hover:bg-amber-500/20 active:scale-[0.98] touch-manipulation transition-all cursor-pointer"
-              >
-                <Heart className="w-4 h-4 flex-shrink-0 text-rose-400 fill-rose-400/20" />
-                <span>Support via UPI ❤️</span>
-              </button>
+              {showSupportButton && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    openSupport();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 light:text-amber-600 light:bg-amber-50 font-semibold text-xs whitespace-nowrap hover:bg-amber-500/20 active:scale-[0.98] touch-manipulation transition-all cursor-pointer"
+                >
+                  <Heart className="w-4 h-4 flex-shrink-0 text-rose-400 fill-rose-400/20" />
+                  <span>Support via UPI ❤️</span>
+                </button>
+              )}
               <FuturisticButton
                 size="md"
                 variant="primary"
-                className="flex-1 justify-center text-xs whitespace-nowrap touch-manipulation"
+                className={`${showSupportButton ? 'flex-1' : 'w-full'} justify-center text-xs whitespace-nowrap touch-manipulation`}
                 onClick={(e) => handleNavClick(e, '#contact')}
               >
                 Let's Connect

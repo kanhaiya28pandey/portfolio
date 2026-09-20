@@ -678,6 +678,7 @@ export const DEFAULT_PORTFOLIO_DATA: PortfolioOverview = {
     site_title: 'Kanhaiya | techwithkanhaiya',
     meta_description: 'Official portfolio of Kanhaiya Pandey - Full-Stack Developer & Software Engineer.',
     support_coffee_url: 'pandey123@okhdfcbank',
+    show_support_button: 'false',
     availability_badge: 'Available for Full-Stack & AI Roles',
     dsa_solved_count: '150+',
     github_url: 'https://github.com/kanhaiya28pandey/',

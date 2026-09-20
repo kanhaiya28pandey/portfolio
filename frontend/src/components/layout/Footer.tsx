@@ -32,7 +32,7 @@ export const Footer: React.FC<FooterProps> = ({
   settings: propSettings,
   socialLinks: propSocialLinks,
 }) => {
-  const { openSupport } = useSupportModal();
+  const { openSupport, showSupportButton } = useSupportModal();
   const [data, setData] = useState<{
     profile: Profile;
     settings: Record<string, string>;
@@ -81,6 +81,13 @@ export const Footer: React.FC<FooterProps> = ({
 
   const githubUrl = propSocialLinks?.github || settings.github_url || profile.githubUrl || 'https://github.com/kanhaiya28pandey/';
   const linkedinUrl = propSocialLinks?.linkedin || settings.linkedin_url || profile.linkedinUrl || 'https://www.linkedin.com/in/kanhaiya-pandey-3856743a7/';
+
+  const isSupportVisible =
+    propSettings?.show_support_button !== undefined
+      ? propSettings.show_support_button === 'true'
+      : settings.show_support_button !== undefined
+      ? settings.show_support_button === 'true'
+      : showSupportButton;
 
   // Technologies actually used to engineer this portfolio (as shown in reference)
   const portfolioTech = [
@@ -264,17 +271,19 @@ export const Footer: React.FC<FooterProps> = ({
               </motion.a>
 
               {/* Direct UPI Support Button */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                type="button"
-                onClick={openSupport}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/10 light:bg-amber-50 border border-amber-500/30 text-amber-400 dark:text-amber-400 light:text-amber-700 text-xs font-semibold shadow-sm hover:bg-amber-500/20 transition-all cursor-pointer whitespace-nowrap"
-                title="Support via UPI"
-              >
-                <Heart className="w-3.5 h-3.5 flex-shrink-0 text-rose-400 fill-rose-400/20" />
-                <span>Support ❤️</span>
-              </motion.button>
+              {isSupportVisible && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={openSupport}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/10 light:bg-amber-50 border border-amber-500/30 text-amber-400 dark:text-amber-400 light:text-amber-700 text-xs font-semibold shadow-sm hover:bg-amber-500/20 transition-all cursor-pointer whitespace-nowrap"
+                  title="Support via UPI"
+                >
+                  <Heart className="w-3.5 h-3.5 flex-shrink-0 text-rose-400 fill-rose-400/20" />
+                  <span>Support ❤️</span>
+                </motion.button>
+              )}
 
               {/* Glowing Let's Connect Button */}
               <motion.button
