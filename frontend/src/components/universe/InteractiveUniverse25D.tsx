@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import { TechLogo } from '../common/TechIcons';
 import { getCategoryTheme, areTechnologiesRelated } from '../../utils/techRelationships';
 import { useTheme } from '../../context/ThemeContext';
@@ -25,6 +25,20 @@ interface OrbitNodePosition {
   baseAngle: number;
 }
 
+// 3 Elliptical Orbit Radii (rx, ry) calibrated for widescreen perspective
+// Synchronized speedMultiplier (1.0) ensures coordinates remain geometrically locked and stable
+const ORBIT_CONFIGS = [
+  { rx: 185, ry: 100, speedMultiplier: 1.0 }, // Inner Orbit
+  { rx: 295, ry: 160, speedMultiplier: 1.0 }, // Middle Orbit
+  { rx: 405, ry: 220, speedMultiplier: 1.0 }, // Outer Orbit
+];
+
+// Viewport Center Constants
+const VIEW_W = 940;
+const VIEW_H = 550;
+const CENTER_X = VIEW_W / 2;
+const CENTER_Y = VIEW_H / 2;
+
 export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
   skills,
   activeCategory,
@@ -39,24 +53,24 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  // Parallax & Interactive 3D Rotation Controls
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  // Interactive 3D Rotation Controls
   const [rotationAngle, setRotationAngle] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const touchStartRef = useRef({ x: 0, y: 0 });
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
 
-  // Offscreen visibility tracking to pause RAF loop and save mobile battery/CPU
-  const isVisibleRef = useRef(true);
-  const isDraggingRef = useRef(false);
+  // References for animation loop & interactive state
+  const isAutoRotatingRef = useRef(true);
   const hoveredSkillIdRef = useRef<number | null>(null);
   const selectedSkillRef = useRef<Skill | null>(null);
   const currentSpeedRef = useRef<number>(9.0);
   const lastTimeRef = useRef<number>(0);
 
+  // Hold-to-spin timers for buttons
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
-    isDraggingRef.current = isDragging;
-  }, [isDragging]);
+    isAutoRotatingRef.current = isAutoRotating;
+  }, [isAutoRotating]);
 
   useEffect(() => {
     hoveredSkillIdRef.current = hoveredSkillId;
@@ -67,21 +81,13 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
   }, [selectedSkill]);
 
   useEffect(() => {
-    if (!containerRef.current || typeof IntersectionObserver === 'undefined') return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        isVisibleRef.current = entry.isIntersecting;
-        if (entry.isIntersecting) {
-          lastTimeRef.current = performance.now();
-        }
-      },
-      { rootMargin: '120px 0px' }
-    );
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    return () => {
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+      if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
+    };
   }, []);
 
-  // Continuous Cinematic Orbital Motion Clock - Never pauses, never stutters, never resets
+  // Continuous Cinematic Orbital Motion Clock - Controlled by auto-rotate state and rotation buttons
   useEffect(() => {
     let animationFrameId: number;
 
@@ -93,7 +99,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       const delta = Math.min((time - lastTimeRef.current) / 1000, 0.05);
       lastTimeRef.current = time;
 
-      if (!isDraggingRef.current) {
+      if (isAutoRotatingRef.current) {
         // Smoothly interpolate speed: gently decelerates to 3.0 deg/sec on hover/selection for inspection, 9.0 deg/sec in normal orbit
         const targetSpeed =
           hoveredSkillIdRef.current !== null || selectedSkillRef.current !== null ? 3.0 : 9.0;
@@ -108,14 +114,6 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
     animationFrameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrameId);
   }, []);
-
-  // 3 Elliptical Orbit Radii (rx, ry) calibrated for widescreen perspective
-  // Synchronized speedMultiplier (1.0) ensures coordinates remain geometrically locked and stable
-  const ORBIT_CONFIGS = [
-    { rx: 185, ry: 100, speedMultiplier: 1.0 }, // Inner Orbit
-    { rx: 295, ry: 160, speedMultiplier: 1.0 }, // Middle Orbit
-    { rx: 405, ry: 220, speedMultiplier: 1.0 }, // Outer Orbit
-  ];
 
   // Scattered & Interleaved Distribution: Categories thoroughly mixed across all 3 orbits
   const baseNodes: OrbitNodePosition[] = useMemo(() => {
@@ -206,64 +204,42 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
     return result;
   }, [skills]);
 
-  // Viewport Center Constants
-  const VIEW_W = 940;
-  const VIEW_H = 550;
-  const CENTER_X = VIEW_W / 2;
-  const CENTER_Y = VIEW_H / 2;
-
-  // Mouse Drag Handlers (Desktop)
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    setIsDragging(true);
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    const dx = e.clientX - dragStartRef.current.x;
-    const dy = e.clientY - dragStartRef.current.y;
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
-
-    setRotationAngle((prev) => prev - dx * 0.35);
-    setPanOffset((prev) => ({
-      x: Math.max(-60, Math.min(60, prev.x + dx * 0.12)),
-      y: Math.max(-40, Math.min(40, prev.y + dy * 0.12)),
-    }));
-  };
-
-  const handleMouseUp = () => setIsDragging(false);
-
-  // Touch Drag Handlers (Mobile & Tablet)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 1) {
-      setIsDragging(true);
-      touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  // Stop continuous spinning when releasing rotate buttons
+  const stopSpin = () => {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    if (holdIntervalRef.current) {
+      clearInterval(holdIntervalRef.current);
+      holdIntervalRef.current = null;
     }
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    const dx = touch.clientX - touchStartRef.current.x;
-    const dy = touch.clientY - touchStartRef.current.y;
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
-
-    setRotationAngle((prev) => (prev - dx * 0.38 + 360) % 360);
-    setPanOffset((prev) => ({
-      x: Math.max(-45, Math.min(45, prev.x + dx * 0.08)),
-      y: Math.max(-30, Math.min(30, prev.y + dy * 0.08)),
-    }));
+  // Step rotate by degrees (immediate on click or tap)
+  const rotateStep = (dir: -1 | 1) => {
+    setRotationAngle((prev) => (prev + dir * 25 + 360) % 360);
   };
 
-  const handleTouchEnd = () => setIsDragging(false);
+  // Start spinning (tap/click rotates immediately; hold rotates continuously)
+  const startSpin = (dir: -1 | 1) => {
+    rotateStep(dir);
+    holdTimerRef.current = setTimeout(() => {
+      holdIntervalRef.current = setInterval(() => {
+        setRotationAngle((prev) => (prev + dir * 3.5 + 360) % 360);
+      }, 25);
+    }, 220);
+  };
 
-  const rotateLeft = () => setRotationAngle((prev) => (prev - 30 + 360) % 360);
-  const rotateRight = () => setRotationAngle((prev) => (prev + 30) % 360);
-
+  // Reset View / rotation back to default orientation
   const resetView = () => {
-    setPanOffset({ x: 0, y: 0 });
+    stopSpin();
     setRotationAngle(0);
+  };
+
+  // Toggle Auto-Orbit rotation
+  const toggleAutoRotate = () => {
+    setIsAutoRotating((prev) => !prev);
   };
 
   // Compute live 3D coordinates, orbital movement, and depth attributes for each node
@@ -524,16 +500,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
   return (
     <div
       ref={containerRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
-      style={{ touchAction: 'pan-y' }}
-      className={`relative w-full h-[480px] sm:h-[520px] lg:h-[560px] rounded-2xl overflow-hidden select-none cursor-grab active:cursor-grabbing touch-pan-y transition-colors duration-300 ${
+      className={`relative w-full h-[480px] sm:h-[520px] lg:h-[560px] rounded-2xl overflow-hidden select-none transition-colors duration-300 ${
         isDark
           ? 'bg-[#030714] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.7)]'
           : 'bg-[#050B1E] border-2 border-slate-300/80 shadow-[0_20px_50px_rgba(15,23,42,0.18)]'
@@ -736,13 +703,8 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
         />
       </div>
 
-      {/* 2. Interactive Scalable 3D Constellation Canvas (No Zoom) */}
-      <div
-        className="absolute inset-0 flex items-center justify-center transition-transform duration-200 ease-out"
-        style={{
-          transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
-        }}
-      >
+      {/* 2. Scalable 3D Constellation Canvas (No Zoom) */}
+      <div className="absolute inset-0 flex items-center justify-center">
         <svg
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
           className="w-full h-full max-w-[1080px] max-h-[640px] overflow-visible"
@@ -972,44 +934,78 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
               </>
             )}
             {' • '}
-            <span className="hidden sm:inline">Drag to rotate • Click planet to inspect</span>
-            <span className="sm:hidden">Tap planet</span>
+            <span className="hidden sm:inline">Use buttons to rotate • Click planet to inspect</span>
+            <span className="sm:hidden">Use buttons to rotate • Tap planet</span>
           </span>
         </div>
 
-        {/* Rotate and Reset Controls */}
-        <div className="flex items-center gap-1.5 pointer-events-auto">
+        {/* Universe Motion & Rotation Control Buttons */}
+        <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+          {/* Rotate Left Button */}
           <button
             type="button"
-            onClick={rotateLeft}
+            onPointerDown={() => startSpin(-1)}
+            onPointerUp={stopSpin}
+            onPointerLeave={stopSpin}
+            onPointerCancel={stopSpin}
             aria-label="Rotate left"
-            className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-mono transition-colors shadow-md cursor-pointer ${
+            title="Rotate Left (Click or Hold)"
+            className={`inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full font-mono text-sm transition-all duration-200 shadow-md cursor-pointer active:scale-95 ${
               isDark
-                ? 'bg-slate-900/90 border border-white/10 hover:border-cyan-400/50 text-slate-300 hover:text-white'
-                : 'bg-white border border-slate-300 hover:border-blue-600 text-slate-800 hover:text-slate-950 font-semibold'
+                ? 'bg-slate-900/90 border border-white/15 hover:border-cyan-400 hover:text-cyan-300 text-slate-200 hover:shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                : 'bg-white border border-slate-300 hover:border-blue-600 hover:text-blue-600 text-slate-700 hover:shadow-md'
             }`}
           >
-            ◀
+            <ChevronLeft className="w-4 h-4" />
           </button>
+
+          {/* Toggle Auto-Orbit Play/Pause */}
           <button
             type="button"
-            onClick={rotateRight}
-            aria-label="Rotate right"
-            className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-mono transition-colors shadow-md cursor-pointer ${
-              isDark
-                ? 'bg-slate-900/90 border border-white/10 hover:border-cyan-400/50 text-slate-300 hover:text-white'
-                : 'bg-white border border-slate-300 hover:border-blue-600 text-slate-800 hover:text-slate-950 font-semibold'
+            onClick={toggleAutoRotate}
+            aria-label={isAutoRotating ? 'Pause orbit' : 'Resume orbit'}
+            title={isAutoRotating ? 'Pause Orbit' : 'Resume Orbit'}
+            className={`inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full font-mono text-xs transition-all duration-200 shadow-md cursor-pointer active:scale-95 ${
+              isAutoRotating
+                ? isDark
+                  ? 'bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 hover:border-cyan-400 hover:shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                  : 'bg-blue-50 border border-blue-300 text-blue-600 hover:border-blue-500'
+                : isDark
+                  ? 'bg-amber-950/60 border border-amber-500/40 text-amber-300 hover:border-amber-400'
+                  : 'bg-amber-50 border border-amber-300 text-amber-600 hover:border-amber-500'
             }`}
           >
-            ▶
+            {isAutoRotating ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 translate-x-0.5" />}
           </button>
+
+          {/* Rotate Right Button */}
+          <button
+            type="button"
+            onPointerDown={() => startSpin(1)}
+            onPointerUp={stopSpin}
+            onPointerLeave={stopSpin}
+            onPointerCancel={stopSpin}
+            aria-label="Rotate right"
+            title="Rotate Right (Click or Hold)"
+            className={`inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full font-mono text-sm transition-all duration-200 shadow-md cursor-pointer active:scale-95 ${
+              isDark
+                ? 'bg-slate-900/90 border border-white/15 hover:border-cyan-400 hover:text-cyan-300 text-slate-200 hover:shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                : 'bg-white border border-slate-300 hover:border-blue-600 hover:text-blue-600 text-slate-700 hover:shadow-md'
+            }`}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+
+          {/* Reset Orbit Button */}
           <button
             type="button"
             onClick={resetView}
-            className={`inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-mono transition-colors shadow-lg backdrop-blur-md cursor-pointer ${
+            aria-label="Reset orbit"
+            title="Reset Orbit View"
+            className={`inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-[11px] font-mono transition-all duration-200 shadow-lg backdrop-blur-md cursor-pointer active:scale-95 ${
               isDark
-                ? 'bg-slate-900/90 border border-white/10 hover:border-cyan-400/50 text-slate-300 hover:text-white'
-                : 'bg-white border border-slate-300 hover:border-blue-600 text-slate-800 hover:text-slate-950 shadow-md font-semibold'
+                ? 'bg-slate-900/90 border border-white/15 hover:border-cyan-400 text-slate-200 hover:text-cyan-300 hover:shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+                : 'bg-white border border-slate-300 hover:border-blue-600 text-slate-700 hover:text-blue-600 shadow-md font-medium'
             }`}
           >
             <RotateCcw className="w-3 h-3 text-cyan-500" />
