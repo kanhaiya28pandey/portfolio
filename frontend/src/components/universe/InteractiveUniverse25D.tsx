@@ -530,7 +530,51 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
           : 'bg-[#050B1E] border-2 border-slate-300/80 shadow-[0_20px_50px_rgba(15,23,42,0.18)]'
       } ${className}`}
     >
-      {/* 1. Deep Space Nebula & Ambient Cosmic Starfield Background */}
+      {/* CSS Keyframes for Cinematic Background Cosmic Movement */}
+      <style>{`
+        @keyframes cosmicMeteor1 {
+          0% { transform: translate(550px, -80px) rotate(-35deg) scaleX(0); opacity: 0; }
+          12% { opacity: 0.95; transform: translate(320px, 60px) rotate(-35deg) scaleX(1); }
+          28% { transform: translate(-80px, 320px) rotate(-35deg) scaleX(0.7); opacity: 0; }
+          100% { transform: translate(-80px, 320px) rotate(-35deg) scaleX(0); opacity: 0; }
+        }
+        @keyframes cosmicMeteor2 {
+          0% { transform: translate(650px, -30px) rotate(-32deg) scaleX(0); opacity: 0; }
+          10% { opacity: 0.9; transform: translate(400px, 140px) rotate(-32deg) scaleX(1); }
+          26% { transform: translate(60px, 380px) rotate(-32deg) scaleX(0.6); opacity: 0; }
+          100% { transform: translate(60px, 380px) rotate(-32deg) scaleX(0); opacity: 0; }
+        }
+        @keyframes cosmicMeteor3 {
+          0% { transform: translate(720px, 80px) rotate(-38deg) scaleX(0); opacity: 0; }
+          14% { opacity: 0.85; transform: translate(440px, 270px) rotate(-38deg) scaleX(1); }
+          30% { transform: translate(100px, 510px) rotate(-38deg) scaleX(0.65); opacity: 0; }
+          100% { transform: translate(100px, 510px) rotate(-38deg) scaleX(0); opacity: 0; }
+        }
+        @keyframes asteroidDriftA {
+          0% { transform: translate(-120px, 70px) rotate(0deg); }
+          100% { transform: translate(1100px, 140px) rotate(360deg); }
+        }
+        @keyframes asteroidDriftB {
+          0% { transform: translate(1080px, 440px) rotate(360deg); }
+          100% { transform: translate(-140px, 370px) rotate(0deg); }
+        }
+        @keyframes asteroidDriftC {
+          0% { transform: translate(260px, -70px) rotate(0deg); }
+          100% { transform: translate(820px, 640px) rotate(540deg); }
+        }
+        @keyframes driftingStarA {
+          0% { transform: translate(0px, 0px); opacity: 0.35; }
+          50% { transform: translate(25px, -18px); opacity: 0.85; }
+          100% { transform: translate(0px, 0px); opacity: 0.35; }
+        }
+        @keyframes driftingStarB {
+          0% { transform: translate(0px, 0px); opacity: 0.4; }
+          50% { transform: translate(-30px, 20px); opacity: 0.9; }
+          100% { transform: translate(0px, 0px); opacity: 0.4; }
+        }
+      `}</style>
+
+      {/* 1. Deep Space Nebula & Ambient Cosmic Starfield Background (Moving behind the universe) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Soft Violet Nebula top-left */}
         <div
@@ -546,6 +590,70 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
         <div
           className="absolute -bottom-20 -right-20 w-[460px] h-[460px] rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(29, 78, 216, 0.22) 0%, transparent 70%)' }}
+        />
+
+        {/* Real Universe Passing Meteorites / Shooting Stars */}
+        <div
+          className="absolute top-0 right-1/4 w-36 h-[2px] rounded-full bg-gradient-to-r from-transparent via-cyan-400 to-white shadow-[0_0_12px_#38bdf8] pointer-events-none"
+          style={{ animation: 'cosmicMeteor1 4.2s cubic-bezier(0.25, 1, 0.5, 1) infinite' }}
+        />
+        <div
+          className="absolute top-10 right-1/3 w-28 h-[1.8px] rounded-full bg-gradient-to-r from-transparent via-purple-400 to-white shadow-[0_0_10px_#a855f7] pointer-events-none"
+          style={{ animation: 'cosmicMeteor2 6.5s cubic-bezier(0.25, 1, 0.5, 1) infinite 1.8s' }}
+        />
+        <div
+          className="absolute top-20 right-10 w-32 h-[2px] rounded-full bg-gradient-to-r from-transparent via-amber-300 to-white shadow-[0_0_10px_#f59e0b] pointer-events-none"
+          style={{ animation: 'cosmicMeteor3 5.5s cubic-bezier(0.25, 1, 0.5, 1) infinite 3.2s' }}
+        />
+
+        {/* Real Universe Passing Space Stones / Tumbling Asteroids */}
+        {/* Asteroid 1: Rocky Charcoal Asteroid */}
+        <div
+          className="absolute top-0 left-0 w-8 h-8 pointer-events-none opacity-80"
+          style={{ animation: 'asteroidDriftA 26s linear infinite' }}
+        >
+          <svg viewBox="0 0 40 40" className="w-full h-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+            <polygon points="12,4 28,6 36,18 32,32 18,36 6,26 4,14" fill="#334155" stroke="#64748B" strokeWidth="1.2" />
+            <polygon points="12,4 22,14 18,36 6,26" fill="#1E293B" opacity="0.6" />
+            <circle cx="16" cy="18" r="2.5" fill="#0F172A" />
+            <circle cx="26" cy="24" r="1.5" fill="#0F172A" />
+          </svg>
+        </div>
+
+        {/* Asteroid 2: Cratered Stone Asteroid */}
+        <div
+          className="absolute top-0 left-0 w-6 h-6 pointer-events-none opacity-75"
+          style={{ animation: 'asteroidDriftB 32s linear infinite 4s' }}
+        >
+          <svg viewBox="0 0 30 30" className="w-full h-full drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+            <polygon points="10,2 22,5 28,15 22,26 8,28 3,18 5,8" fill="#475569" stroke="#94A3B8" strokeWidth="1" />
+            <polygon points="10,2 18,12 8,28 3,18" fill="#0F172A" opacity="0.5" />
+            <circle cx="14" cy="16" r="2" fill="#020617" />
+          </svg>
+        </div>
+
+        {/* Asteroid 3: Fast Micro-Meteorite Stone */}
+        <div
+          className="absolute top-0 left-0 w-4 h-4 pointer-events-none opacity-65"
+          style={{ animation: 'asteroidDriftC 18s linear infinite 8s' }}
+        >
+          <svg viewBox="0 0 20 20" className="w-full h-full drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]">
+            <polygon points="6,2 16,4 18,14 10,18 2,12 3,6" fill="#64748B" stroke="#CBD5E1" strokeWidth="0.8" />
+          </svg>
+        </div>
+
+        {/* Moving Background Stars / Cosmic Dust drifting behind */}
+        <div
+          className="absolute top-24 left-[35%] w-2 h-2 rounded-full bg-cyan-300 pointer-events-none shadow-[0_0_8px_#38bdf8]"
+          style={{ animation: 'driftingStarA 8s ease-in-out infinite' }}
+        />
+        <div
+          className="absolute bottom-32 right-[30%] w-2 h-2 rounded-full bg-purple-300 pointer-events-none shadow-[0_0_8px_#c084fc]"
+          style={{ animation: 'driftingStarB 10s ease-in-out infinite 2s' }}
+        />
+        <div
+          className="absolute top-40 right-[20%] w-1.5 h-1.5 rounded-full bg-amber-300 pointer-events-none shadow-[0_0_6px_#f59e0b]"
+          style={{ animation: 'driftingStarA 12s ease-in-out infinite 4s' }}
         />
 
         {/* Distant Starfield & Micro Coordinates */}
