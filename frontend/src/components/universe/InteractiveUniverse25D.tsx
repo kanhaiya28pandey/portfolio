@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { RotateCcw, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
+import { RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TechLogo } from '../common/TechIcons';
 import { getCategoryTheme, areTechnologiesRelated } from '../../utils/techRelationships';
 import { useTheme } from '../../context/ThemeContext';
@@ -55,10 +55,8 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
 
   // Interactive 3D Rotation Controls
   const [rotationAngle, setRotationAngle] = useState(0);
-  const [isAutoRotating, setIsAutoRotating] = useState(true);
 
   // References for animation loop & interactive state
-  const isAutoRotatingRef = useRef(true);
   const hoveredSkillIdRef = useRef<number | null>(null);
   const selectedSkillRef = useRef<Skill | null>(null);
   const currentSpeedRef = useRef<number>(9.0);
@@ -67,10 +65,6 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
   // Hold-to-spin timers for buttons
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    isAutoRotatingRef.current = isAutoRotating;
-  }, [isAutoRotating]);
 
   useEffect(() => {
     hoveredSkillIdRef.current = hoveredSkillId;
@@ -87,7 +81,7 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
     };
   }, []);
 
-  // Continuous Cinematic Orbital Motion Clock - Controlled by auto-rotate state and rotation buttons
+  // Continuous Cinematic Orbital Motion Clock
   useEffect(() => {
     let animationFrameId: number;
 
@@ -99,14 +93,12 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
       const delta = Math.min((time - lastTimeRef.current) / 1000, 0.05);
       lastTimeRef.current = time;
 
-      if (isAutoRotatingRef.current) {
-        // Smoothly interpolate speed: gently decelerates to 3.0 deg/sec on hover/selection for inspection, 9.0 deg/sec in normal orbit
-        const targetSpeed =
-          hoveredSkillIdRef.current !== null || selectedSkillRef.current !== null ? 3.0 : 9.0;
-        currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * 0.08;
+      // Smoothly interpolate speed: gently decelerates to 3.0 deg/sec on hover/selection for inspection, 9.0 deg/sec in normal orbit
+      const targetSpeed =
+        hoveredSkillIdRef.current !== null || selectedSkillRef.current !== null ? 3.0 : 9.0;
+      currentSpeedRef.current += (targetSpeed - currentSpeedRef.current) * 0.08;
 
-        setRotationAngle((prev) => (prev + delta * currentSpeedRef.current) % 360);
-      }
+      setRotationAngle((prev) => (prev + delta * currentSpeedRef.current) % 360);
 
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -235,11 +227,6 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
   const resetView = () => {
     stopSpin();
     setRotationAngle(0);
-  };
-
-  // Toggle Auto-Orbit rotation
-  const toggleAutoRotate = () => {
-    setIsAutoRotating((prev) => !prev);
   };
 
   // Compute live 3D coordinates, orbital movement, and depth attributes for each node
@@ -959,24 +946,6 @@ export const InteractiveUniverse25D: React.FC<InteractiveUniverse25DProps> = ({
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {/* Toggle Auto-Orbit Play/Pause */}
-          <button
-            type="button"
-            onClick={toggleAutoRotate}
-            aria-label={isAutoRotating ? 'Pause orbit' : 'Resume orbit'}
-            title={isAutoRotating ? 'Pause Orbit' : 'Resume Orbit'}
-            className={`inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full font-mono text-xs transition-all duration-200 shadow-md cursor-pointer active:scale-95 ${
-              isAutoRotating
-                ? isDark
-                  ? 'bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 hover:border-cyan-400 hover:shadow-[0_0_12px_rgba(6,182,212,0.3)]'
-                  : 'bg-blue-50 border border-blue-300 text-blue-600 hover:border-blue-500'
-                : isDark
-                  ? 'bg-amber-950/60 border border-amber-500/40 text-amber-300 hover:border-amber-400'
-                  : 'bg-amber-50 border border-amber-300 text-amber-600 hover:border-amber-500'
-            }`}
-          >
-            {isAutoRotating ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 translate-x-0.5" />}
-          </button>
 
           {/* Rotate Right Button */}
           <button
